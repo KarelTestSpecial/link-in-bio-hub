@@ -1,0 +1,35 @@
+Op basis van de analyse van de bestaande code en de projectdocumentatie, zijn dit de openstaande werkzaamheden om de applicatie volledig te transformeren naar een full-stack oplossing met een robuuste backend:
+
+### Openstaande Werkzaamheden
+
+**Backend Ontwikkeling:**
+
+1.  **Firebase Functions Configuratie Migratie (KRITISCH):**
+    *   De `functions.config()` API voor het beheren van omgevingsvariabelen in Firebase Functions is afgeschreven en zal na 31 december 2025 niet meer werken. Bestaande deployments blijven werken, maar nieuwe deployments zullen falen.
+    *   **Actie Vereist:** Migreer de `GEMINI_API_KEY` en eventuele toekomstige configuratievariabelen van `functions.config()` naar `.env` bestanden (door gebruik te maken van `firebase functions:config:set` met een prefix of door dotenv direct in de functie te gebruiken), zoals beschreven in de Firebase documentatie: [https://firebase.google.com/docs/functions/config-env#migrate-to-dotenv](https://firebase.google.com/docs/functions/config-env#migrate-to-dotenv).
+    *   Deze migratie is essentieel om toekomstige deployments mogelijk te maken en de applicatie up-to-date te houden met de best practices van Firebase.
+
+2.  **Implementeer de volgende API Endpoints:**
+    *   `GET /api/users/:username`: Endpoint om openbare profielgegevens van een specifieke gebruiker op te halen (geen authenticatie vereist).
+    *   `GET /api/users/:username/profile`: Endpoint om alle profielgegevens van de ingelogde gebruiker op te halen (authenticatie vereist).
+    *   `DELETE /api/users/:username`: Endpoint om een gebruiker te verwijderen (authenticatie vereist, implementeer indien nodig admin checks).
+3.  **Voltooi Beveiligingsimplementatie:** Zorg voor een grondige implementatie van de volgende beveiligingspraktijken over alle relevante endpoints:
+    *   Input Sanitization
+    *   Rate Limiting
+    *   Correcte CORS configuratie
+    *   Vermijd Sensitive Data in URL's
+    *   Beveiligde JWT afhandeling (waar nodig)
+4.  **Verbeter Error Handling en Validatie:** Implementeer consistente en robuuste error handling en datavalidatie over alle backend endpoints, retourneer passende HTTP statuscodes en duidelijke foutmeldingen.
+5.  **Implementeer Backend Tests:** Schrijf en implementeer unit tests en integration tests voor de backend code.
+6.  **Creëer API Documentatie:** Stel duidelijke en actuele API documentatie op, bij voorkeur met tools zoals Swagger/OpenAPI, inclusief details over endpoints, methoden, parameters, responses (inclusief fouten), authenticatie en voorbeelden.
+
+**Frontend Integratie:**
+
+1.  **Authenticatie Flow Aanpassen:** Wijzig de authenticatielogica, inclusief de `AuthModal` component, om te interageren met de backend `/api/users/login` en `/api/users/register` endpoints in plaats van lokale opslag of validatie.
+2.  **Update Gegevensbeheer:** Pas de componenten (met name `EditPanel.tsx`) en services aan om alle wijzigingen in gebruikersgegevens (profiel, customization, links, groepen) via de corresponderende backend API endpoints (PUT, POST, DELETE) door te voeren, in plaats van lokale staat te muteren.
+3.  **Initieel Gegevens Ophalen:** Implementeer de logica om bij het opstarten van de applicatie alle benodigde gebruikersgegevens (profiel, links, groepen, customization, etc.) via de backend API op te halen.
+4.  **Pas Link Click Registratie Aan:** Wijzig de `LinkButton` component om clicks te registreren door het `/api/links/:linkId/click` endpoint aan te roepen.
+5.  **Integreer Analytics Weergave:** Zorg ervoor dat de analytics data correct wordt opgehaald via de `/api/users/:username/analytics` endpoint en op een passende manier wordt weergegeven (bijv. in een Analytics Dashboard component).
+6.  **Implementeer Frontend Error Handling:** Voeg error handling toe in de frontend om fouten die door de backend API worden geretourneerd op te vangen en op een gebruiksvriendelijke manier aan de gebruiker te tonen.
+7.  **Verwijder `localStorage` Gebruik:** Controleer de gehele frontend codebase en verwijder al het directe lezen en schrijven van gebruikersgegevens naar `localStorage`, en vervang dit door interacties met de backend API.
+8.  **Implementeer Frontend Tests:** Schrijf en implementeer frontend unit tests en end-to-end tests.

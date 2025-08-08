@@ -1,0 +1,35 @@
+**Project:** Full-Stack Link-in-Bio Applicatie
+
+**Context:**
+We hebben een grootschalige migratie van de backend-database uitgevoerd om een kritieke deployment-blocker op te lossen die werd veroorzaakt door een Google Cloud-beveiligingsregel ('gcp.restrictNonCmekServices'). De applicatie is succesvol gemigreerd van Cloud Firestore naar de Firebase Realtime Database (RTDB). Vervolgens hebben we meerdere opeenvolgende crashes in de frontend opgelost die het gevolg waren van de structurele verschillen in hoe de data door de twee databases wordt geretourneerd.
+
+**Samenvatting van Uitgevoerde Werkzaamheden:**
+
+1.  **Backend Migratie (Firestore naar RTDB):**
+    *   De volledige backend-logica in `functions/index.js` is herschreven om de Firebase Realtime Database te gebruiken.
+    *   Alle data-operaties (gebruikers aanmaken, inloggen, appData ophalen/bijwerken) zijn aangepast voor de RTDB-structuur en API.
+    *   Dit loste de fundamentele `500 Internal Server Error` op die werd veroorzaakt door de onveranderbare cloud policy.
+
+2.  **Frontend Stabilisatie:**
+    *   **Data Transformatie:** De `useAppData` hook is aangepast om de object-gebaseerde data van RTDB om te zetten naar de arrays die de frontend componenten verwachten, wat de `flatMap is not a function` en `map is not a function` crashes oploste.
+    *   **State Management Bugs:** Meerdere bugs in de `useAuth` en `App.tsx` componenten, die leidden tot crashes zoals `cannot read properties of undefined (reading 'isAuthenticated')` en `cannot read properties of undefined (reading 'length')`, zijn geïdentificeerd en gecorrigeerd.
+
+**Huidige Status:**
+De applicatie is nu stabiel en functioneel na de database-migratie en de daaropvolgende frontend-fixes. De kernfunctionaliteit (inloggen, data ophalen, data weergeven) werkt zonder te crashen.
+
+**Openstaande Werkzaamheden (Volgende Prioriteiten):**
+
+1.  **Beveiliging (KRITISCH):** De huidige beveiligingsregels van de Realtime Database zijn waarschijnlijk de standaardregels (testmodus), wat onveilig is. Deze moeten met **hoge prioriteit** worden herschreven om te garanderen dat gebruikers alleen hun eigen data kunnen lezen en schrijven.
+2.  **Volledige Functionele Test:** Nu de basis stabiel is, moet de volledige applicatie grondig worden getest:
+    *   Registreren van een *nieuwe* gebruiker.
+    *   Toevoegen, bewerken en verwijderen van links, groepen en sociale iconen.
+    *   Aanpassen van het profiel en het thema.
+    *   Werking van de analytics (kliks registreren).
+3.  **Verbeteren Foutafhandeling Frontend:** Vervang de `alert()` meldingen door een gebruiksvriendelijker notificatiesysteem (bv. toasts) voor een betere gebruikerservaring.
+4.  **Tailwind CSS Waarschuwing:** Installeer Tailwind CSS als een PostCSS-plugin in plaats van de CDN-link te gebruiken in productie.
+
+**Eerstvolgende Stappen:**
+
+1.  **Analyseer en schrijf** de nieuwe security rules voor de Realtime Database in `database.rules.json`.
+2.  **Deploy** de nieuwe security rules met het commando: `firebase deploy --only database`.
+3.  **Voer een volledige, end-to-end test uit** van alle features om te verifiëren dat de applicatie correct werkt zoals verwacht na de database-migratie.
