@@ -1,0 +1,23 @@
+Samenvatting van de werkzaamheden op 2025-08-09
+
+Hieronder volgt een overzicht van de belangrijkste wijzigingen en configuraties die zijn doorgevoerd in het LinkHub-project.
+
+1.  **Beveiliging van de Applicatie:**
+    *   Het onveilige, publiek beschrijfbare analytics-eindpunt is vervangen door een beveiligde Cloud Function (`/api/analytics/click/:username/:linkId`).
+    *   De database security rules (`database.rules.json`) zijn aangescherpt om ongeautoriseerde schrijfacties te blokkeren en tegelijkertijd publieke lees-toegang voor profielpagina's mogelijk te maken.
+
+2.  **Correctie van Authenticatie:**
+    *   De JWT-tokengeneratie in `functions/index.js` is aangepast. De tokens bevatten nu een `uid`-claim die overeenkomt met de `username`, waardoor de nieuwe databaseregels correct werken voor ingelogde gebruikers.
+
+3.  **Configuratie voor Nieuw Firebase Project:**
+    *   Alle relevante configuratiebestanden (`.firebaserc`, `functions/index.js`, `services/backendApi.ts`) zijn bijgewerkt om te verwijzen naar het nieuwe Firebase-project: `link-in-bio-fbase-project`.
+    *   De `firebase.json` is gecorrigeerd om de `dist`-map te deployen voor Firebase Hosting in plaats van de `public`-map.
+
+4.  **Deployment naar Firebase:**
+    *   De volledige applicatie (Cloud Functions, database regels, hosting) is succesvol gedeployed naar het nieuwe project.
+    *   Problemen met het Firebase-abonnement (upgrade naar Blaze) en ontbrekende secrets (`GEMINI_API_KEY`, `JWT_SECRET`) zijn geïdentificeerd en opgelost.
+
+5.  **Post-Deployment Onderhoud:**
+    *   Er is een 'cleanup policy' ingesteld voor de Cloud Functions artifacts om onnodige opslagkosten door oude container-images te voorkomen.
+
+Het project is nu volledig operationeel, correct geconfigureerd en veiliger.

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { AppData } from '../types';
 import * as geminiService from './geminiService';
 
-const API_BASE_URL = 'https://europe-west3-link-in-bio-hub.cloudfunctions.net/api';
+const API_BASE_URL = 'https://europe-west3-link-in-bio-fbase-project.cloudfunctions.net/api';
 
 const backendApiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -35,7 +35,7 @@ const appData = {
 };
 
 const analytics = {
-  registerClick: (linkId: string, ownerUsername: string) => backendApiClient.post(`/links/${linkId}/click`, { ownerUsername }),
+  registerClick: (username: string, linkId: string) => backendApiClient.post(`/analytics/click/${username}/${linkId}`),
   getAnalytics: (username: string) => backendApiClient.get(`/users/${username}/analytics`),
 };
 

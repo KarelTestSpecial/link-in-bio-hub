@@ -1,7 +1,5 @@
 {
   "projects": {
-    "link-in-bio-hub-2": "link-in-bio-2"
-  },
-  "targets": {},
-  "etags": {}
+    "default": "link-in-bio-fbase-project"
+  }
 }

@@ -1,21 +1,24 @@
 {
   "rules": {
-    ".read": false,
-    ".write": false,
     "users": {
-      "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid"
+      "$username": {
+        // By default, nothing is readable at the user's root level
+        ".read": false,
+        // A user can only write to their own data node.
+        // IMPORTANT: This requires the custom JWT to have a 'uid' claim matching the username.
+        ".write": "auth != null && auth.uid === $username",
+
+        // Public profile data is readable by anyone.
+        "appData": {
+          ".read": true
+        }
       }
     },
     "analytics": {
-      "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
-        "clicks": {
-          "$linkId": {
-            ".write": true
-          }
-        }
+      "$username": {
+        // Analytics are only readable by the owner.
+        ".read": "auth != null && auth.uid === $username"
+        // Writes are now disabled and handled by the backend function.
       }
     }
   }

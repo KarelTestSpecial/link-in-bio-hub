@@ -1,6 +1,6 @@
-# LinkHub - Your Unified Digital Presence
+# Link-in-bio-Hub - Your Unified Digital Presence
 
-LinkHub is a platform designed to consolidate your online presence, allowing you to share multiple links, social media profiles, and even collect questions via an "Ask Me Anything" section, all from a single, customizable page. The project utilizes **Firebase Hosting** for the frontend web application and **Firebase Cloud Functions** for the backend API logic.
+Link-in-bio-Hub is a platform designed to consolidate your online presence, allowing you to share multiple links, social media profiles, and even collect questions via an "Ask Me Anything" section, all from a single, customizable page. The project utilizes **Firebase Hosting** for the frontend web application and **Firebase Cloud Functions** for the backend API logic.
 
 ## Run Locally
 
@@ -10,7 +10,7 @@ LinkHub is a platform designed to consolidate your online presence, allowing you
 
 1.  Clone the repository:
     `git clone <repository_url>`
-    `cd linkhub`
+    `cd link-in-bio-hub`
 
 1. Install dependencies:
    `npm install`

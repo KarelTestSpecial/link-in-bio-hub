@@ -109,7 +109,7 @@ const LinkButton: React.FC<LinkButtonProps> = ({ link, animationId, ownerUsernam
 
   const handleClick = async (event: React.MouseEvent<HTMLAnchorElement>) => {
     try {
-      await backendApi.analytics.registerClick(link.id, ownerUsername); // Pass ownerUsername
+      await backendApi.analytics.registerClick(ownerUsername, link.id);
       console.log(`Click registered for link ID: ${link.id} by user: ${ownerUsername}`);
     } catch (error) {
       console.error(`Failed to register click for link ID: ${link.id}`, error);
