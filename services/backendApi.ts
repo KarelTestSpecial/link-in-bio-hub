@@ -2,7 +2,7 @@ import axios from 'axios';
 import { AppData } from '../types';
 import * as geminiService from './geminiService';
 
-const API_BASE_URL = 'https://europe-west3-link-in-bio-hub.cloudfunctions.net/api';
+const API_BASE_URL = 'https://europe-west3-link-in-bio-2.cloudfunctions.net/api';
 
 const backendApiClient = axios.create({
   baseURL: API_BASE_URL,

@@ -1,0 +1,43 @@
+### Logboek: Full-Stack Transformatie & Debugging Sessie
+
+**Doel:** De link-in-bio applicatie transformeren van een client-side app naar een full-stack oplossing met een Firebase backend voor dataopslag, authenticatie en analytics.
+
+**Stap 1: Analyse en Planning**
+*   **Analyse:** Het project werd geanalyseerd. De conclusie was dat de frontend redelijk compleet was, maar de backend-interactie en database-opslag volledig moesten worden geïmplementeerd.
+*   **Planning:** Er werd een stappenplan opgesteld om de Firebase Realtime Database te configureren en de benodigde Cloud Functions te implementeren.
+
+**Stap 2: Backend Ontwikkeling & Database Configuratie**
+*   **Database:** Een Firebase Realtime Database is succesvol aangemaakt en de security rules uit `database.rules.json` zijn geïmplementeerd.
+*   **Cloud Functions (`functions/index.js`):**
+    *   Een complete Express-backend is geschreven in `functions/index.js`.
+    *   **Authenticatie:** Endpoints voor gebruikersregistratie (`/users/register`) en login (`/users/login`) zijn geïmplementeerd met bcrypt voor wachtwoord-hashing en JWT voor sessiebeheer.
+    *   **Data Management:** GET en PUT endpoints voor `/users/:username/appData` zijn geïmplementeerd om alle gebruikersdata op te halen en op te slaan. Er zijn transformatiefuncties geschreven om te converteren tussen het array-formaat van de frontend en het object-formaat van de Realtime Database.
+    *   **Analytics & AI:** Placeholders en implementaties voor analytics en AI-proxy routes zijn toegevoegd.
+*   **Secrets:** `JWT_SECRET` en `GEMINI_API_KEY` zijn geconfigureerd als secrets via Firebase Secret Manager.
+
+**Stap 3: Deployment & Intensieve Debugging**
+De deployment van de backend en de integratie met de frontend stuitten op meerdere problemen die systematisch zijn opgelost:
+
+1.  **Backend Deployment Fouten:**
+    *   **Module Not Found:** Een initiële fout werd opgelost door `npm install` in de `functions` map uit te voeren.
+    *   **SyntaxError:** `catch (error: any)` (TypeScript-syntax) in een `.js` bestand werd gecorrigeerd naar `catch (error)`.
+    *   **API's Inschakelen:** De `firebaseextensions.googleapis.com` API werd succesvol ingeschakeld.
+    *   **Kostenwaarschuwing:** De `minInstances: 1` instelling werd verwijderd om onverwachte kosten in de free-tier te voorkomen.
+
+2.  **Frontend <> Backend Connectiviteitsfouten (CORS):**
+    *   **Fout 1 (Verkeerde URL):** De frontend riep de verkeerde Cloud Function URL aan (`...link-in-bio-hub...` ipv `...link-in-bio-2...`). Dit werd gecorrigeerd in `services/backendApi.ts`.
+    *   **Fout 2 (Verkeerde Origin):** Na het fixen van de URL, bleek de CORS-configuratie op de backend de verkeerde frontend-origin toe te staan. Dit werd gecorrigeerd in `functions/index.js` om de juiste origin (`https://link-in-bio-2.web.app`) te accepteren.
+
+3.  **Frontend Build Fouten:**
+    *   **Dependency Conflict:** Een `ERESOLVE` fout tussen React 19 en de verouderde `@testing-library/react-hooks` werd opgelost door de verouderde package te verwijderen.
+    *   **Tailwind v4 Fout:** De build mislukte door een verouderde PostCSS-configuratie voor Tailwind v4. Dit werd tijdelijk opgelost door `@tailwindcss/postcss` te installeren en de configuratie aan te passen.
+    *   **Module Systeem Fout:** Een conflict tussen ESM (`"type": "module"`) en CJS (`module.exports`) werd opgelost door `postcss.config.js` te hernoemen naar `postcss.config.cjs`.
+
+4.  **Styling Probleem (Tailwind CSS):**
+    *   **Diagnose:** Na een succesvolle build was de styling "raar". Door tijdelijk terug te keren naar de Tailwind CDN werd bevestigd dat het probleem in de PostCSS-build zat.
+    *   **Oplossing:** Het probleem werd definitief opgelost door de pre-release versie van Tailwind v4 te **downgraden naar de stabiele versie 3**. Alle configuratiebestanden (`tailwind.config.js`, `postcss.config.js`) werden gecorrigeerd naar de juiste syntax en inhoud voor Tailwind v3.
+
+**Eindstatus (Einde Sessie):**
+*   **Backend:** De Cloud Function `api` is succesvol en volledig gedeployed en live.
+*   **Frontend:** De frontend is succesvol gebouwd en gedeployed met de juiste backend URL en een werkende Tailwind CSS build.
+*   **Resultaat:** Authenticatie (registreren en inloggen) werkt. De applicatie is klaar voor het systematisch testen van de overige CRUD-functionaliteiten in het edit panel.
