@@ -12,7 +12,7 @@ const { onRequest } = require("firebase-functions/v2/https");
 // Initialiseer Firebase Admin SDK
 // Zorg ervoor dat de databaseURL overeenkomt met jouw Realtime Database instantie
 admin.initializeApp({
-  databaseURL: "https://link-in-bio-2-default-rtdb.europe-west1.firebasedatabase.app" // **PAS DEZE AAN INDIEN NODIG**
+  databaseURL: "https://link-in-bio-fbase-project-default-rtdb.europe-west1.firebasedatabase.app" // **PAS DEZE AAN INDIEN NODIG**
 });
 const db = admin.database();
 
