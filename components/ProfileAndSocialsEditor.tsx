@@ -1,7 +1,9 @@
+// --- START OF FILE ProfileAndSocialsEditor.tsx (COMPLETE CORRECTED VERSION) ---
+
 import React, { useState } from 'react';
 import { AppData, SocialLink } from '../types';
 import { PREDEFINED_SOCIAL_PLATFORMS } from '../constants';
-import backendApi from '../services/backendApi'; // Import backendApi
+import backendApi from '../services/backendApi';
 import Section from './Section';
 
 // Icons specific to Profile and Socials Editor
@@ -18,11 +20,6 @@ const TrashIcon: React.FC = () => (
 const UpArrowIcon: React.FC = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0L10 10.06l3.72 4.72a.75.75 0 101.06-1.06l-4.25-5.25a.75.75 0 00-1.06 0L5.22 13.72a.75.75 0 000 1.06z" clipRule="evenodd" />
-    </svg>
-);
-const DownArrowIcon: React.FC = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M9.47 5.22a.75.75 0 011.06 0l4.25 5.25a.75.75 0 11-1.06 1.06L10 6.781l-3.72 4.72a.75.75 0 01-1.06-1.06l4.25-5.25z" clipRule="evenodd" />
     </svg>
 );
 
@@ -54,8 +51,8 @@ const ProfileAndSocialsEditor: React.FC<ProfileAndSocialsEditorProps> = ({
     if (!bioKeywords.trim() || isGeneratingBio) return;
     setIsGeneratingBio(true);
     try {
-        const newBio = await backendApi.ai.generateBio(bioKeywords, profile.name); // Use backendApi.ai
-        onProfileChange({ bio: newBio });
+        const response = await backendApi.ai.generateBio(bioKeywords, profile.name);
+        onProfileChange({ bio: response.bio });
         setIsBioGeneratorOpen(false);
         setBioKeywords('');
     } catch (error) {
@@ -72,6 +69,7 @@ const ProfileAndSocialsEditor: React.FC<ProfileAndSocialsEditorProps> = ({
         {PREDEFINED_SOCIAL_PLATFORMS.map(p => <option key={p} value={p} />)}
       </datalist>
       <div className="space-y-3">
+        {/* Name, Handle, Avatar URL inputs (geen wijzigingen) */}
         <div>
             <label className="text-xs text-[var(--text-secondary)]">Name</label>
             <input type="text" value={profile.name} onChange={(e) => onProfileChange({ name: e.target.value })} className="w-full p-2 text-sm rounded-md bg-[var(--input-background-color)] border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--accent-color)] focus:outline-none" />
@@ -84,6 +82,8 @@ const ProfileAndSocialsEditor: React.FC<ProfileAndSocialsEditorProps> = ({
             <label className="text-xs text-[var(--text-secondary)]">Avatar URL</label>
             <input type="text" value={profile.avatarUrl} onChange={(e) => onProfileChange({ avatarUrl: e.target.value })} className="w-full p-2 text-sm rounded-md bg-[var(--input-background-color)] border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--accent-color)] focus:outline-none" />
         </div>
+
+        {/* Bio Textarea & Generate Button */}
         <div>
             <div className="flex justify-between items-center mb-1">
               <label className="text-xs text-[var(--text-secondary)]">Bio</label>
@@ -98,6 +98,43 @@ const ProfileAndSocialsEditor: React.FC<ProfileAndSocialsEditorProps> = ({
             </div>
             <textarea value={profile.bio} onChange={(e) => onProfileChange({ bio: e.target.value })} rows={3} className="w-full p-2 text-sm rounded-md bg-[var(--input-background-color)] border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--accent-color)] focus:outline-none" />
         </div>
+        
+        {/* --- START VAN TOEGEVOEGDE CODE: DE BIO GENERATOR MODAL --- */}
+        {isBioGeneratorOpen && (
+          <div className="mt-2 p-3 bg-[var(--background-color)] rounded-lg border border-[var(--border-color)] space-y-2">
+            <h4 className="text-sm font-semibold text-[var(--text-primary)]">Generate Bio with AI</h4>
+            <form onSubmit={handleGenerateBio}>
+              <textarea
+                value={bioKeywords}
+                onChange={(e) => setBioKeywords(e.target.value)}
+                placeholder="Enter keywords... e.g., 'travel, coffee, creativity'"
+                rows={2}
+                className="w-full p-2 text-sm rounded-md bg-[var(--input-background-color)] border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--accent-color)] focus:outline-none"
+                disabled={isGeneratingBio}
+              />
+              <div className="flex space-x-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsBioGeneratorOpen(false)}
+                  className="flex-1 p-2 rounded-md bg-[var(--surface-color-hover)] border border-[var(--border-color)] text-sm"
+                  disabled={isGeneratingBio}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!bioKeywords.trim() || isGeneratingBio}
+                  className="flex-1 p-2 rounded-md bg-[var(--accent-color)] text-white hover:bg-[var(--accent-color-hover)] text-sm font-semibold disabled:bg-[var(--disabled-background-color)] disabled:cursor-not-allowed"
+                >
+                  {isGeneratingBio ? 'Generating...' : 'Generate Bio'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+        {/* --- EINDE VAN TOEGEVOEGDE CODE --- */}
+
+        {/* Social Links (geen wijzigingen) */}
         <h4 className="text-sm font-semibold text-[var(--text-secondary)] pt-2">Social Links</h4>
         {socials.map((social, index) => (
           <div key={social.id} className="bg-[var(--background-color)] p-3 rounded-lg border border-[var(--border-color)] space-y-2">
