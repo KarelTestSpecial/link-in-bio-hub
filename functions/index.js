@@ -10,15 +10,39 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { onRequest } = require("firebase-functions/v2/https");
 
 // Initialiseer Firebase Admin SDK
-// Zorg ervoor dat de databaseURL overeenkomt met jouw Realtime Database instantie
 admin.initializeApp({
-  databaseURL: "https://link-in-bio-fbase-project-default-rtdb.europe-west1.firebasedatabase.app" // **PAS DEZE AAN INDIEN NODIG**
+  databaseURL: process.env.DATABASE_URL
 });
 const db = admin.database();
 
 const app = express();
-// Configureer CORS om alle origins toe te staan (voor ontwikkeling, pas aan voor productie)
-app.use(cors({ origin: ['https://link-in-bio-fbase-project.web.app', 'http://localhost:5173'] }));
+
+// --- CORS CONFIGURATIE ---
+// Definieer de toegestane origins
+const allowedOrigins = (process.env.CORS_ORIGINS || "").split(',');
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Sta requests toe als de origin in de lijst staat, of als er geen origin is (bv. server-naar-server)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'], // Sta expliciet de gebruikte methodes toe
+  allowedHeaders: ['Content-Type', 'Authorization'], // Sta expliciet de gebruikte headers toe
+};
+
+// Schakel pre-flight 'OPTIONS' requests in voor alle routes.
+// Dit is de cruciale stap die de "preflight request doesn't pass access control check" fout oplost.
+app.options('*', cors(corsOptions));
+
+// Gebruik daarna dezelfde CORS-opties voor alle andere requests.
+app.use(cors(corsOptions));
+// --- EINDE CORS CONFIGURATIE ---
+
+
 app.use(express.json());
 
 // Gebruik Firebase Environment Configuration voor secrets
@@ -37,6 +61,22 @@ if (GEMINI_API_KEY) {
 } else {
     console.warn("GEMINI_API_KEY is not set. AI features will be disabled.");
 }
+
+
+// Helper om JSON uit een string te extraheren, zelfs als het omgeven is door tekst of markdown
+const extractJsonFromString = (str) => {
+  const match = str.match(/```json\s*([\s\S]*?)\s*```|({[\s\S]*})/);
+  if (match) {
+    const jsonStr = match[1] || match[2];
+    try {
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      console.error("Failed to parse extracted JSON:", e);
+      return null;
+    }
+  }
+  return null;
+};
 
 
 // Helper functie om standaard App Data te genereren

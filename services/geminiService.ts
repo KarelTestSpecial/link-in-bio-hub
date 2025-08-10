@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { AppData, Link } from "../types";
 
-const API_BASE_URL = 'https://europe-west3-link-in-bio-hub.cloudfunctions.net/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const aiBackendApi = axios.create({
   baseURL: API_BASE_URL,
