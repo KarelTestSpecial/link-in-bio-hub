@@ -70,6 +70,7 @@ export interface AppDataActions {
     handleUndo: () => void;
     history: AppData[];
     confirmationState: any;
+    refetchData: () => Promise<void>;
 }
 
 interface UseAppDataProps {
@@ -116,6 +117,31 @@ export const useAppData = (
       toast('Undo successful!');
     }
   }, [history, updateAppData]);
+
+  const refetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      let rawData;
+      if (!isAuthenticated || !loggedInUsername) {
+        rawData = MOCK_APP_DATA;
+      } else {
+        const response = await backendApi.appData.getAppData(loggedInUsername);
+        rawData = response.data;
+      }
+      
+      const completeData = mergeWithDefaults(rawData, MOCK_APP_DATA);
+      const finalData = Array.isArray(completeData.linkGroups) ? completeData : transformRtdbObjectsToArrays(completeData);
+
+      setAppDataInternal(finalData);
+      setHistory([]); // Reset history after a full refetch
+    } catch (error) {
+      console.error("Failed to refetch app data:", error);
+      if (isAuthenticated) { logout(); }
+      setAppDataInternal(MOCK_APP_DATA);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, loggedInUsername, logout]);
 
   // --- Implementaties ---
   const handleProfileChange = useCallback(async (updates: Partial<Profile>) => {
@@ -383,33 +409,8 @@ export const useAppData = (
 
   // Effect om data te fetchen
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        let rawData;
-        if (!isAuthenticated || !loggedInUsername) {
-          rawData = MOCK_APP_DATA;
-        } else {
-          const response = await backendApi.appData.getAppData(loggedInUsername);
-          rawData = response.data;
-        }
-        
-        const completeData = mergeWithDefaults(rawData, MOCK_APP_DATA);
-        // De backend transformeert al, dus deze stap is nu voor de fallback MOCK_DATA
-        const finalData = Array.isArray(completeData.linkGroups) ? completeData : transformRtdbObjectsToArrays(completeData);
-
-        setAppDataInternal(finalData);
-        setHistory([]);
-      } catch (error) {
-        console.error("Failed to fetch app data:", error);
-        if (isAuthenticated) { logout(); }
-        setAppDataInternal(MOCK_APP_DATA);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [isAuthenticated, loggedInUsername, logout]);
+    refetchData();
+  }, [isAuthenticated, loggedInUsername, refetchData, logout]); // refetchData is nu een dependency
   
   const actions: AppDataActions = {
     handleProfileChange,
@@ -434,6 +435,7 @@ export const useAppData = (
     handleUndo,
     history,
     confirmationState,
+    refetchData,
   };
 
   return [

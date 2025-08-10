@@ -154,6 +154,12 @@ const App: React.FC = () => {
           ) {
             await backendApi.appData.importAppData(authInfo.loggedInUsername!, importedData);
             toast.success('Data imported successfully!');
+            
+            // --- TOEGEVOEGD: Roep de refetch functie aan ---
+            if (appDataActions.refetchData) {
+              await appDataActions.refetchData();
+            }
+            
             setIsEditPanelOpen(false);
           } else {
             toast.error("Invalid data file format.");
