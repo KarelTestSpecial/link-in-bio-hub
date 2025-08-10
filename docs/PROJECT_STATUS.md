@@ -57,7 +57,7 @@ Dit zijn de belangrijkste taken die met hoge prioriteit moeten worden opgepakt.
 - **Risico:** Ongeautoriseerde gebruikers kunnen mogelijk data lezen of wijzigen, wat leidt tot datalekken en misbruik.
 - **Actie:** Herschrijf en test de security rules in `database.rules.json` om te garanderen dat:
     1. Een gebruiker alleen zijn/haar eigen data kan schrijven.
-    2. Publieke profielinformatie leesbaar is voor iedereen, maar gevoelige data niet.
+    2. Alle gebruikersdata (appData) is publiekelijk leesbaar, aangezien deze uitsluitend publieke informatie bevat die bedoeld is om te delen. Gevoelige informatie, die een 'uid' in het JWT vereist, is niet publiekelijk leesbaar.
     3. De analytics-schrijfactie zo beperkt mogelijk is.
 - **Deployment:** Deploy de nieuwe regels met `firebase deploy --only database`.
 

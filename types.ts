@@ -1,5 +1,5 @@
 export interface Link {
-  id: number;
+  id: string;
   title: string; // The "real" title shown after the countdown
   url: string;
   style?: 'fill' | 'outline';
@@ -9,7 +9,7 @@ export interface Link {
 }
 
 export interface LinkGroup {
-  id: number;
+  id: string;
   title: string;
   links: Link[];
 }
@@ -17,7 +17,7 @@ export interface LinkGroup {
 export type SocialPlatform = string;
 
 export interface SocialLink {
-  id: number;
+  id: string;
   platform: SocialPlatform;
   url:string;
 }
