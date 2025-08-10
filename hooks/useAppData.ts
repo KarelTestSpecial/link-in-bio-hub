@@ -123,7 +123,7 @@ export const useAppData = (
     const newData = JSON.parse(JSON.stringify(appData));
     newData.profile = { ...newData.profile, ...updates };
     updateAppData(newData);
-    toast.success('Profile updated!');
+    // toast.success('Profile updated!');
   }, [appData, updateAppData]);
 
   const handleCustomizationChange = useCallback(async (updates: Partial<Customization>) => {
@@ -131,6 +131,10 @@ export const useAppData = (
     const newData = JSON.parse(JSON.stringify(appData));
     newData.customization = { ...newData.customization, ...updates };
     updateAppData(newData);
+    // Toon alleen een toast als het NIET de themawissel is, want die heeft al directe visuele feedback.
+    if (!updates.theme) {
+        toast.success('Appearance updated!');
+    }
   }, [appData, updateAppData]);
 
   const handleAddLink = useCallback(async (groupId: string, newLinkData: Omit<Link, 'id'>) => {

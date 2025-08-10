@@ -155,11 +155,16 @@ export const DEFAULT_PALETTES: Palette[] = [
 export const FONTS: Font[] = [
     { id: 'font-sans', name: 'Inter', className: 'font-sans' },
     { id: 'font-lora', name: 'Lora', className: 'font-lora' },
-    { id: 'font-work-sans', name: 'Work Sans', className: 'font-work-sans' },
+    { id: 'font-work-sans', name: 'Work Sans', className: 'font-work-sans' }
+    { id: 'font-poppins', name: 'Poppins (Professioneel & Vrolijk)', className: 'font-poppins' },
+    { id: 'font-playfair-display', name: 'Playfair Display (Karaktervol & Stijlvol)', className: 'font-playfair-display' },
+    { id: 'font-caveat', name: 'Caveat (Handgeschreven & Persoonlijk)', className: 'font-caveat' },
+    { id: 'font-roboto-mono', name: 'Roboto Mono (Modern & Techy)', className: 'font-roboto-mono' },,
 ];
 
 export const ANIMATIONS: { id: string, name: string, className: string }[] = [
-    { id: 'none', name: 'None', className: 'hover:scale-105' },
+    { id: 'none', name: 'None', className: '' }, 
+    { id: 'grow', name: 'Grow', className: 'hover:scale-105' },
     { id: 'pulse', name: 'Pulse', className: 'hover:animate-pulse' },
     { id: 'bounce', name: 'Bounce', className: 'hover:animate-bounce' },
     { id: 'shake', name: 'Shake', className: 'hover:animate-shake' },
