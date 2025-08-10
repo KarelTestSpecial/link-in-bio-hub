@@ -405,6 +405,46 @@ app.post("/ai/generate-link-title", authenticateToken, async (req, res) => {
      }
 });
 
+// Proxy route voor de streaming "Ask Me Anything" functie
+app.post("/ai/ask-question-stream", authenticateToken, async (req, res) => {
+  try {
+    const { question, influencerName, influencerBio } = req.body;
+    if (!question || !influencerName || !influencerBio) {
+      return res.status(400).send({ message: "question, influencerName, and influencerBio are required." });
+    }
+
+    if (!genAI) {
+      throw new Error("AI service is not initialized.");
+    }
+
+    const aiPrompt = `You are role-playing as a social media influencer. Your name is ${influencerName} and your bio is "${influencerBio}". Answer the following question from your perspective, in a friendly and engaging tone. Keep the answer concise. Do not break character. The question is: "${question}"`;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const result = await model.generateContentStream(aiPrompt);
+
+    // Stel de headers in voor een streaming response
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    // Stream de response
+    for await (const chunk of result.stream) {
+      res.write(chunk.text());
+    }
+    
+    // Sluit de stream af
+    res.end();
+
+  } catch (error) {
+    console.error("Error in /ai/ask-question-stream:", error);
+    // Zorg ervoor dat er een fout wordt gestuurd als er iets misgaat
+    if (!res.headersSent) {
+      res.status(500).send({ message: "Internal Server Error. Could not get a streaming response." });
+    } else {
+      res.end();
+    }
+  }
+});
+
 // Exporteer de Express app als een Cloud Function
 exports.api = onRequest(
     {

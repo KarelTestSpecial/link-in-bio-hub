@@ -329,8 +329,10 @@ const suggestions = await backendApi.ai.generateLinkGroups({ links: allLinks });
                               if (!newLink.title.trim() || isGeneratingLinkTitle) return;
                               setIsGeneratingLinkTitle(true);
                               try {
-                                  const title = await backendApi.ai.generateLinkTitle(newLink.title);
-                                  setNewLink(prev => ({ ...prev, title }));
+                                  const response = await backendApi.ai.generateLinkTitle(newLink.title);
+                                  // Haal de 'title' string uit het response object
+                                  // Update de state met de 'title' property uit het response object
+                                  setNewLink(prev => ({ ...prev, title: response.title }));
                               } catch (error) {
                                   console.error("Failed to generate link title:", error);
                                   alert("Sorry, there was an issue generating the link title. Please try again.");

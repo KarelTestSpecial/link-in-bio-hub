@@ -55,25 +55,36 @@ export const askQuestionStream = async (
   influencerName: string,
   influencerBio: string
 ): Promise<AsyncGenerator<{ text: string }>> => {
-  // Deze functie was al correct, maar we houden hem voor de volledigheid.
   if (!getAuthToken()) throw new Error("Authentication required for AI features.");
+  
   try {
-    const response = await aiBackendApi.post(
-      '/ai/ask-question-stream',
-      { question, influencerName, influencerBio },
-      { responseType: 'stream' }
-    );
-    const reader = response.data.getReader();
+    const response = await fetch(`${API_BASE_URL}/ai/ask-question-stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      body: JSON.stringify({ question, influencerName, influencerBio }),
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error(`Failed to get a response from the AI. Status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
     return (async function*() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        yield { text: new TextDecoder().decode(value) };
+        yield { text: decoder.decode(value) };
       }
     })();
+    
   } catch (error: any) {
-    console.error("Error proxying askQuestionStream:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || "Failed to get a response from the AI.");
+    console.error("Error in askQuestionStream:", error);
+    throw new Error("Failed to get a response from the AI.");
   }
 };
 
