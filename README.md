@@ -23,16 +23,24 @@ Link-in-bio-Hub is a platform designed to consolidate your online presence, allo
     *   Initialize Firebase in your project:
         `firebase init`
         Follow the prompts to select the features you want to use (Functions, Hosting, Firestore). Link it to your Firebase project.
-3. Set the `GEMINI_API_KEY`:
-    *   For local testing, you can set the `GEMINI_API_KEY` in a `.env.local` file in the root of your project.
-    *   For Cloud Functions, you'll need to configure this securely using Firebase Environment Configuration:
-        `firebase functions:config:set gemini.key="YOUR_GEMINI_API_KEY"`
+3. Set the `GEMINI_API_KEY` and `JWT_SECRET`:
+    *   For local testing, you can set `GEMINI_API_KEY` and `JWT_SECRET` in a `.env.local` file in the root of your project.
+    *   For Cloud Functions, these secrets are managed securely using **Google Secret Manager**. Ensure you have created secrets named `GEMINI_API_KEY` and `JWT_SECRET` in your Firebase project's Secret Manager. You can manage them via the Google Cloud Console or Firebase CLI.
 4. Start Firebase Emulators:
     `firebase emulators:start`
     This will start the emulators for Functions, Firestore, and Hosting.
 5. Run the frontend development server:
    `npm run dev`
     The frontend will be served locally, typically on `http://localhost:5173`. The Firebase Emulators will serve the functions and host the built frontend files.
+
+## Project Configuration and Overview
+
+This project is configured for the following Firebase setup:
+
+*   **Firebase Project ID:** `link-in-bio-fbase-project`
+*   **Firebase Functions Region:** `europe-west3`
+*   **Firebase Realtime Database Region:** `europe-west1`
+*   **Authentication:** Custom JWT-based authentication.
 
 ## Deployment
 To deploy your application to Firebase Hosting and Cloud Functions:
