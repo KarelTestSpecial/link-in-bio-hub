@@ -10,9 +10,8 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { onRequest } = require("firebase-functions/v2/https");
 
 // Initialiseer Firebase Admin SDK
-admin.initializeApp({
-  databaseURL: process.env.DATABASE_URL
-});
+// Binnen een Firebase-omgeving (cloud of emulators) worden de instellingen automatisch gedetecteerd.
+admin.initializeApp();
 const db = admin.database();
 
 const app = express();

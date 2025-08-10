@@ -354,7 +354,7 @@ export const useAppData = (
     
     const newGroups: LinkGroup[] = suggestions.map((suggestion) => ({
         id: uuidv4(),
-        title: suggestion.title, // Backend geeft 'title' terug nu
+        title: suggestion.groupTitle, // Backend geeft 'title' terug nu
         links: suggestion.linkIds.map(id => allLinks.find((l: Link) => l.id === id)).filter((l): l is Link => !!l)
     }));
     

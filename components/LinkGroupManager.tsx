@@ -100,7 +100,7 @@ const LinkGroupManager: React.FC<LinkGroupManagerProps> = ({
               setIsGeneratingGroups(false);
               return;
           }
-          const suggestions = await backendApi.ai.generateLinkGroups(allLinks); // Use backendApi.ai
+const suggestions = await backendApi.ai.generateLinkGroups({ links: allLinks }); // Verpak de array in een object & Use backendApi.ai
           onApplyAIGroups(suggestions);
       } catch (error) {
           console.error("Failed to generate link groups:", error);
