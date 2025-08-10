@@ -27,6 +27,13 @@ const UndoIcon: React.FC = () => (
   </svg>
 );
 
+// --- TOEGEVOEGD: Logout Icoon ---
+const LogoutIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
+    </svg>
+);
+
 const App: React.FC = () => {
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -99,8 +106,14 @@ const App: React.FC = () => {
       return;
     }
     try {
+      // De backend geeft nu al de correcte JSON data terug
       const response = await backendApi.appData.exportAppData(authInfo.loggedInUsername);
-      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+      
+      // De data is al een JSON-object, we hoeven het alleen maar om te zetten naar een string
+      // voor de Blob.
+      const dataString = JSON.stringify(response.data, null, 2);
+      const blob = new Blob([dataString], { type: 'application/json' });
+      
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -198,6 +211,14 @@ const App: React.FC = () => {
                   aria-label="Customize page"
                 >
                   <EditIcon />
+                </button>
+                {/* --- TOEGEVOEGD: Logout Knop --- */}
+                <button
+                    onClick={logout}
+                    className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200"
+                    aria-label="Logout"
+                >
+                    <LogoutIcon />
                 </button>
               </>
             )}

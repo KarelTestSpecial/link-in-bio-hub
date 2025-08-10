@@ -341,6 +341,7 @@ export const useAppData = (
             const newData = JSON.parse(JSON.stringify(appData));
             const palette = newData.palettes.find((p: Palette) => p.id === paletteId);
             if (palette && appData.customization.paletteId === 'custom') {
+                palette.name = appData.customization.customPaletteName || palette.name;
                 palette.light = { ...MOCK_APP_DATA.palettes[0].light, ...appData.customization.customColors.light };
                 palette.dark = { ...MOCK_APP_DATA.palettes[0].dark, ...appData.customization.customColors.dark };
                 updateAppData(newData);

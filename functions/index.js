@@ -82,6 +82,56 @@ const extractJsonFromString = (str) => {
   return null;
 };
 
+const DEFAULT_PALETTES_OBJECT = {
+  'default': {
+    id: 'default', name: 'Default',
+    light: {
+      '--background-color': '#f3f4f6', '--surface-color': '#ffffff', '--surface-color-hover': '#f9fafb',
+      '--text-primary': '#1f2937', '--text-secondary': '#6b7280', '--accent-color': '#3b82f6',
+      '--accent-color-hover': '#2563eb', '--border-color': '#e5e7eb', '--avatar-border-color': '#ffffff',
+      '--input-background-color': '#f3f4f6', '--response-background-color': '#e5e7eb', '--disabled-background-color': '#d1d5db',
+    },
+    dark: {
+      '--background-color': '#111827', '--surface-color': '#1f2937', '--surface-color-hover': '#374151',
+      '--text-primary': '#f9fafb', '--text-secondary': '#9ca3af', '--accent-color': '#60a5fa',
+      '--accent-color-hover': '#3b82f6', '--border-color': '#374151', '--avatar-border-color': '#1f2937',
+      '--input-background-color': '#374151', '--response-background-color': '#111827', '--disabled-background-color': '#4b5563',
+    },
+  },
+  'ocean': {
+    id: 'ocean', name: 'Ocean Breeze',
+    light: {
+      '--background-color': '#f0f7ff', '--surface-color': '#ffffff', '--surface-color-hover': '#f8f9fa',
+      '--text-primary': '#0d3d56', '--text-secondary': '#5a7d90', '--accent-color': '#0096c7',
+      '--accent-color-hover': '#0077b6', '--border-color': '#dee2e6', '--avatar-border-color': '#ffffff',
+      '--input-background-color': '#f0f7ff', '--response-background-color': '#e9ecef', '--disabled-background-color': '#adb5bd',
+    },
+    dark: {
+      '--background-color': '#021019', '--surface-color': '#031c2b', '--surface-color-hover': '#04283f',
+      '--text-primary': '#e0fbfc', '--text-secondary': '#98c1d9', '--accent-color': '#3dccc7',
+      '--accent-color-hover': '#50d4ce', '--border-color': '#053752', '--avatar-border-color': '#031c2b',
+      '--input-background-color': '#031c2b', '--response-background-color': '#021019', '--disabled-background-color': '#1c4966',
+    },
+  },
+  'pink': {
+    id: 'pink', name: 'Pink',
+    light: {
+      '--background-color': '#FFF5F7', '--surface-color': '#FFE3E9', '--surface-color-hover': '#FFDDE3',
+      '--text-primary': '#5D1F32', '--text-secondary': '#986A7A', '--accent-color': '#E54B6D',
+      '--accent-color-hover': '#C53756', '--border-color': '#F3DDE1', '--avatar-border-color': '#FFE3E9',
+      '--input-background-color': '#FFF5F7', '--response-background-color': '#FFE3E9', '--disabled-background-color': '#EAD5D9',
+    },
+    dark: {
+      '--background-color': '#2B0B1E', '--surface-color': '#4A1D36', '--surface-color-hover': '#5E2645',
+      '--text-primary': '#FCEEF2', '--text-secondary': '#C9AAB9', '--accent-color': '#FF75B5',
+      '--accent-color-hover': '#FF99C9', '--border-color': '#6B3A54', '--avatar-border-color': '#4A1D36',
+      '--input-background-color': '#4A1D36', '--response-background-color': '#2B0B1E', '--disabled-background-color': '#5C4551',
+    },
+  },
+};
+// --- EINDE VAN CORRECTIE ---
+
+
 // --- ANDERE HELPER FUNCTIES ---
 const getDefaultAppData = (username) => {
   const linkId = uuidv4();
@@ -90,73 +140,50 @@ const getDefaultAppData = (username) => {
     profile: { name: username, handle: `@${username}`, avatarUrl: `https://i.pravatar.cc/150?u=${username}`, bio: "Welcome to my page!", },
     linkGroups: { [groupId]: { id: groupId, title: "My Links", links: { [linkId]: { id: linkId, title: "My Website", url: "https://example.com", clicks: 0, style: "fill", order: 0, active: true }, }, order: 0, }, },
     socials: { [uuidv4()]: { id: uuidv4(), platform: "twitter", url: "https://twitter.com/example", order: 0 }, },
-    palettes: { "default": { id: "default", name: "Default", light: { "--background-color": "#f3f4f6", "--surface-color": "#ffffff", "--text-primary": "#1f2937", "--surface-color-hover": "#f9fafb", "--text-secondary": "#6b7280", "--accent-color": "#3b82f6", "--accent-color-hover": "#2563eb", "--border-color": "#e5e7eb", "--avatar-border-color": "#ffffff", "--input-background-color": "#f3f4f6", "--response-background-color": "#e5e7eb", "--disabled-background-color": "#d1d5db", }, dark: { "--background-color": "#111827", "--surface-color": "#1f2937", "--surface-color-hover": "#374151", "--text-primary": "#f9fafb", "--text-secondary": "#9ca3af", "--accent-color": "#60a5fa", "--accent-color-hover": "#3b82f6", "--border-color": "#374151", "--avatar-border-color": "#1f2937", "--input-background-color": "#374151", "--response-background-color": "#111827", "--disabled-background-color": "#4b5563", }, }, },
+    palettes: DEFAULT_PALETTES_OBJECT, // <-- CORRECTIE TOEGEPAST
     customization: { theme: "light", paletteId: "default", fontId: "font-sans", linkAnimation: "none", backgroundImageUrl: "", customColors: { light: {}, dark: {} }, customPaletteName: "Custom" },
     adminKey: null,
   };
 };
 
+// --- START VAN CORRECTIE: Robuuste transformatiefunctie ---
 const transformRtdbObjectsToArrays = (data) => {
+    if (!data || typeof data !== 'object') {
+        return { linkGroups: [], socials: [], palettes: [], customization: {}, profile: {} };
+    }
     const transformed = JSON.parse(JSON.stringify(data));
-    if (transformed.linkGroups && typeof transformed.linkGroups === 'object' && !Array.isArray(transformed.linkGroups)) {
-        transformed.linkGroups = Object.values(transformed.linkGroups).sort((a, b) => (a.order || 0) - (b.order || 0));
-        transformed.linkGroups.forEach(group => {
-            if (group.links && typeof group.links === 'object' && !Array.isArray(group.links)) {
-                group.links = Object.values(group.links).sort((a, b) => (a.order || 0) - (b.order || 0));
-            } else if (!group.links) { group.links = []; }
-        });
-    } else if (!transformed.linkGroups) { transformed.linkGroups = []; }
-    if (transformed.socials && typeof transformed.socials === 'object' && !Array.isArray(transformed.socials)) {
+    if (transformed.linkGroups && typeof transformed.linkGroups === 'object') {
+        transformed.linkGroups = Object.values(transformed.linkGroups)
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map(group => ({
+                ...group,
+                links: group.links && typeof group.links === 'object'
+                    ? Object.values(group.links).sort((a, b) => (a.order || 0) - (b.order || 0))
+                    : [],
+            }));
+    } else {
+        transformed.linkGroups = [];
+    }
+    if (transformed.socials && typeof transformed.socials === 'object') {
         transformed.socials = Object.values(transformed.socials).sort((a, b) => (a.order || 0) - (b.order || 0));
-    } else if (!transformed.socials) { transformed.socials = []; }
-    if (transformed.palettes && typeof transformed.palettes === 'object' && !Array.isArray(transformed.palettes)) {
-        if (!transformed.palettes["default"]) { transformed.palettes["default"] = getDefaultAppData("").palettes["default"]; }
+    } else {
+        transformed.socials = [];
+    }
+    if (transformed.palettes && typeof transformed.palettes === 'object') {
         transformed.palettes = Object.values(transformed.palettes);
-    } else if (!transformed.palettes) { transformed.palettes = [getDefaultAppData("").palettes["default"]]; }
-    if (!transformed.customization) transformed.customization = getDefaultAppData("").customization;
-    if (!transformed.customization.customColors) transformed.customization.customColors = {light: {}, dark: {}};
-    if (!transformed.customization.customColors.light) transformed.customization.customColors.light = {};
-    if (!transformed.customization.customColors.dark) transformed.customization.customColors.dark = {};
+    } else {
+        transformed.palettes = [];
+    }
     return transformed;
 };
+// --- EINDE VAN CORRECTIE ---
+
 
 const transformArraysToRtdbObjects = (data) => {
     const transformed = JSON.parse(JSON.stringify(data));
-    if (transformed.linkGroups && Array.isArray(transformed.linkGroups)) {
-        const linkGroupsObject = {};
-        transformed.linkGroups.forEach((group, index) => {
-            if (group.id) {
-                const { links, ...groupProps } = group;
-                linkGroupsObject[group.id] = { ...groupProps, order: index };
-                if (links && Array.isArray(links)) {
-                    const linksObject = {};
-                    links.forEach((link, linkIndex) => { if (link.id) { linksObject[link.id] = { ...link, order: linkIndex }; } });
-                    linkGroupsObject[group.id].links = linksObject;
-                } else { linkGroupsObject[group.id].links = {}; }
-            }
-        });
-        transformed.linkGroups = linkGroupsObject;
-    } else if (!transformed.linkGroups) { transformed.linkGroups = {}; }
-    if (transformed.socials && Array.isArray(transformed.socials)) {
-        const socialsObject = {};
-        transformed.socials.forEach((social, index) => { if (social.id) { socialsObject[social.id] = { ...social, order: index }; } });
-        transformed.socials = socialsObject;
-    } else if (!transformed.socials) { transformed.socials = {}; }
-    if (transformed.palettes && Array.isArray(transformed.palettes)) {
-         const palettesObject = {};
-        transformed.palettes.forEach(palette => {
-            if (palette.id) {
-                 palettesObject[palette.id] = { ...palette };
-                 if (Array.isArray(palettesObject[palette.id].light)) palettesObject[palette.id].light = {};
-                 if (Array.isArray(palettesObject[palette.id].dark)) palettesObject[palette.id].dark = {};
-            }
-        });
-        transformed.palettes = palettesObject;
-    } else if (!transformed.palettes) { transformed.palettes = {}; }
-     if (!transformed.customization) transformed.customization = {};
-     if (!transformed.customization.customColors) transformed.customization.customColors = {light: {}, dark: {}};
-     if (Array.isArray(transformed.customization.customColors.light)) transformed.customization.customColors.light = {};
-     if (Array.isArray(transformed.customization.customColors.dark)) transformed.customization.customColors.dark = {};
+    if (data.linkGroups) transformed.linkGroups = data.linkGroups.reduce((acc, group, index) => { acc[group.id] = { ...group, order: index, links: group.links ? group.links.reduce((linksAcc, link, linkIndex) => { linksAcc[link.id] = { ...link, order: linkIndex }; return linksAcc; }, {}) : {} }; return acc; }, {});
+    if (data.socials) transformed.socials = data.socials.reduce((acc, social, index) => { acc[social.id] = { ...social, order: index }; return acc; }, {});
+    if (data.palettes) transformed.palettes = data.palettes.reduce((acc, palette) => { acc[palette.id] = palette; return acc; }, {});
     return transformed;
 };
 
@@ -266,6 +293,61 @@ app.put("/users/:username/appData", authenticateToken, async (req, res) => {
     console.error("Error in /users/:username/appData PUT:", error);
     res.status(500).send({ message: "Internal Server Error. Could not update app data." });
   }
+});
+
+app.get("/users/:username/export", authenticateToken, async (req, res) => {
+    try {
+        const requestedUsername = req.params.username;
+        if (requestedUsername !== req.user.username) {
+            return res.status(403).send({ message: "Access denied." });
+        }
+        const userAppDataRef = db.ref(`users/${requestedUsername}/appData`);
+        const snapshot = await userAppDataRef.once('value');
+        if (!snapshot.exists()) {
+            return res.status(404).send({ message: "No data found for this user." });
+        }
+        // Exporteer data in hetzelfde formaat als de frontend het gebruikt (met arrays)
+        //const dataForExport = transformRtdbObjectsToArrays(snapshot.val());
+        
+        
+        const rawData = snapshot.val();
+        // --- LOG 1: Toon de ruwe data uit de database ---
+        console.log("--- RAW DATA FROM DATABASE ---");
+        console.log(JSON.stringify(rawData, null, 2));
+
+        const dataForExport = transformRtdbObjectsToArrays(rawData);
+
+        // --- LOG 2: Toon de data na transformatie ---
+        console.log("--- DATA AFTER TRANSFORMATION ---");
+        console.log(JSON.stringify(dataForExport, null, 2));
+        
+        
+        res.status(200).json(dataForExport);
+    } catch (error) {
+        console.error("Error in /users/:username/export GET:", error);
+        res.status(500).send({ message: "Internal Server Error. Could not export data." });
+    }
+});
+
+app.post("/users/:username/import", authenticateToken, async (req, res) => {
+    try {
+        const requestedUsername = req.params.username;
+        if (requestedUsername !== req.user.username) {
+            return res.status(403).send({ message: "Access denied." });
+        }
+        const importedData = req.body;
+        // Basisvalidatie
+        if (!importedData.profile || !importedData.linkGroups || !importedData.customization) {
+            return res.status(400).send({ message: "Invalid data file format." });
+        }
+        const dataToSave = transformArraysToRtdbObjects(importedData);
+        const userAppDataRef = db.ref(`users/${requestedUsername}/appData`);
+        await userAppDataRef.set(dataToSave);
+        res.status(200).send({ message: "Data imported successfully." });
+    } catch (error) {
+        console.error("Error in /users/:username/import POST:", error);
+        res.status(500).send({ message: "Internal Server Error. Could not import data." });
+    }
 });
 
 // Analytics Routes

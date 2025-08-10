@@ -1,17 +1,13 @@
-
 import React from 'react';
 import { SocialPlatform, Palette, Font, AppData } from './types';
 
 export const PREDEFINED_SOCIAL_PLATFORMS: SocialPlatform[] = [
-    // Group 1: General / Content Creators (sorted alphabetically)
     'Facebook',
     'Instagram',
     'TikTok',
     'Twitter',
     'YouTube',
-    // Group 2: Professional Networking (sorted alphabetically)
     'LinkedIn',
-    // Group 3: Developer / Tech (sorted alphabetically)
     'GitHub',
 ];
 
@@ -55,111 +51,60 @@ export const SOCIAL_ICONS: Record<SocialPlatform, React.ReactNode> = {
 
 export const DEFAULT_PALETTES: Palette[] = [
   {
-    id: 'default',
-    name: 'Default',
+    id: 'default', name: 'Default',
     light: {
-      '--background-color': '#f3f4f6', // gray-100
-      '--surface-color': '#ffffff', // white
-      '--surface-color-hover': '#f9fafb', // gray-50
-      '--text-primary': '#1f2937', // gray-800
-      '--text-secondary': '#6b7280', // gray-500
-      '--accent-color': '#3b82f6', // blue-500
-      '--accent-color-hover': '#2563eb', // blue-600
-      '--border-color': '#e5e7eb', // gray-200
-      '--avatar-border-color': '#ffffff',
-      '--input-background-color': '#f3f4f6',
-      '--response-background-color': '#e5e7eb',
-      '--disabled-background-color': '#d1d5db',
+      '--background-color': '#f3f4f6', '--surface-color': '#ffffff', '--surface-color-hover': '#f9fafb',
+      '--text-primary': '#1f2937', '--text-secondary': '#6b7280', '--accent-color': '#3b82f6',
+      '--accent-color-hover': '#2563eb', '--border-color': '#e5e7eb', '--avatar-border-color': '#ffffff',
+      '--input-background-color': '#f3f4f6', '--response-background-color': '#e5e7eb', '--disabled-background-color': '#d1d5db',
     },
     dark: {
-      '--background-color': '#111827', // gray-900
-      '--surface-color': '#1f2937', // gray-800
-      '--surface-color-hover': '#374151', // gray-700
-      '--text-primary': '#f9fafb', // gray-100
-      '--text-secondary': '#9ca3af', // gray-400
-      '--accent-color': '#60a5fa', // blue-400
-      '--accent-color-hover': '#3b82f6', // blue-500
-      '--border-color': '#374151', // gray-700
-      '--avatar-border-color': '#1f2937',
-      '--input-background-color': '#374151',
-      '--response-background-color': '#111827',
-      '--disabled-background-color': '#4b5563',
+      '--background-color': '#111827', '--surface-color': '#1f2937', '--surface-color-hover': '#374151',
+      '--text-primary': '#f9fafb', '--text-secondary': '#9ca3af', '--accent-color': '#60a5fa',
+      '--accent-color-hover': '#3b82f6', '--border-color': '#374151', '--avatar-border-color': '#1f2937',
+      '--input-background-color': '#374151', '--response-background-color': '#111827', '--disabled-background-color': '#4b5563',
     },
   },
   {
-    id: 'ocean',
-    name: 'Ocean Breeze',
+    id: 'ocean', name: 'Ocean Breeze',
     light: {
-      '--background-color': '#f0f7ff',
-      '--surface-color': '#ffffff',
-      '--surface-color-hover': '#f8f9fa',
-      '--text-primary': '#0d3d56',
-      '--text-secondary': '#5a7d90',
-      '--accent-color': '#0096c7',
-      '--accent-color-hover': '#0077b6',
-      '--border-color': '#dee2e6',
-      '--avatar-border-color': '#ffffff',
-      '--input-background-color': '#f0f7ff',
-      '--response-background-color': '#e9ecef',
-      '--disabled-background-color': '#adb5bd',
+      '--background-color': '#f0f7ff', '--surface-color': '#ffffff', '--surface-color-hover': '#f8f9fa',
+      '--text-primary': '#0d3d56', '--text-secondary': '#5a7d90', '--accent-color': '#0096c7',
+      '--accent-color-hover': '#0077b6', '--border-color': '#dee2e6', '--avatar-border-color': '#ffffff',
+      '--input-background-color': '#f0f7ff', '--response-background-color': '#e9ecef', '--disabled-background-color': '#adb5bd',
     },
     dark: {
-      '--background-color': '#021019',
-      '--surface-color': '#031c2b',
-      '--surface-color-hover': '#04283f',
-      '--text-primary': '#e0fbfc',
-      '--text-secondary': '#98c1d9',
-      '--accent-color': '#3dccc7',
-      '--accent-color-hover': '#50d4ce',
-      '--border-color': '#053752',
-      '--avatar-border-color': '#031c2b',
-      '--input-background-color': '#031c2b',
-      '--response-background-color': '#021019',
-      '--disabled-background-color': '#1c4966',
+      '--background-color': '#021019', '--surface-color': '#031c2b', '--surface-color-hover': '#04283f',
+      '--text-primary': '#e0fbfc', '--text-secondary': '#98c1d9', '--accent-color': '#3dccc7',
+      '--accent-color-hover': '#50d4ce', '--border-color': '#053752', '--avatar-border-color': '#031c2b',
+      '--input-background-color': '#031c2b', '--response-background-color': '#021019', '--disabled-background-color': '#1c4966',
     },
   },
   {
-    id: 'pink',
-    name: 'Pink',
+    id: 'pink', name: 'Pink',
     light: {
-      '--background-color': '#FFF5F7',
-      '--surface-color': '#FFE3E9',
-      '--surface-color-hover': '#FFDDE3',
-      '--text-primary': '#5D1F32',
-      '--text-secondary': '#986A7A',
-      '--accent-color': '#E54B6D',
-      '--accent-color-hover': '#C53756',
-      '--border-color': '#F3DDE1',
-      '--avatar-border-color': '#FFE3E9',
-      '--input-background-color': '#FFF5F7',
-      '--response-background-color': '#FFE3E9',
-      '--disabled-background-color': '#EAD5D9',
+      '--background-color': '#FFF5F7', '--surface-color': '#FFE3E9', '--surface-color-hover': '#FFDDE3',
+      '--text-primary': '#5D1F32', '--text-secondary': '#986A7A', '--accent-color': '#E54B6D',
+      '--accent-color-hover': '#C53756', '--border-color': '#F3DDE1', '--avatar-border-color': '#FFE3E9',
+      '--input-background-color': '#FFF5F7', '--response-background-color': '#FFE3E9', '--disabled-background-color': '#EAD5D9',
     },
     dark: {
-      '--background-color': '#2B0B1E',
-      '--surface-color': '#4A1D36',
-      '--surface-color-hover': '#5E2645',
-      '--text-primary': '#FCEEF2',
-      '--text-secondary': '#C9AAB9',
-      '--accent-color': '#FF75B5',
-      '--accent-color-hover': '#FF99C9',
-      '--border-color': '#6B3A54',
-      '--avatar-border-color': '#4A1D36',
-      '--input-background-color': '#4A1D36',
-      '--response-background-color': '#2B0B1E',
-      '--disabled-background-color': '#5C4551',
+      '--background-color': '#2B0B1E', '--surface-color': '#4A1D36', '--surface-color-hover': '#5E2645',
+      '--text-primary': '#FCEEF2', '--text-secondary': '#C9AAB9', '--accent-color': '#FF75B5',
+      '--accent-color-hover': '#FF99C9', '--border-color': '#6B3A54', '--avatar-border-color': '#4A1D36',
+      '--input-background-color': '#4A1D36', '--response-background-color': '#2B0B1E', '--disabled-background-color': '#5C4551',
     },
   },
 ];
 
 export const FONTS: Font[] = [
-    { id: 'font-sans', name: 'Inter', className: 'font-sans' },
-    { id: 'font-lora', name: 'Lora', className: 'font-lora' },
-    { id: 'font-work-sans', name: 'Work Sans', className: 'font-work-sans' }
+    { id: 'font-sans', name: 'Inter (Modern & Standaard)', className: 'font-sans' },
+    { id: 'font-lora', name: 'Lora (Klassiek & Elegant)', className: 'font-lora' },
+    { id: 'font-work-sans', name: 'Work Sans (Vriendelijk & Schoon)', className: 'font-work-sans' },
     { id: 'font-poppins', name: 'Poppins (Professioneel & Vrolijk)', className: 'font-poppins' },
     { id: 'font-playfair-display', name: 'Playfair Display (Karaktervol & Stijlvol)', className: 'font-playfair-display' },
     { id: 'font-caveat', name: 'Caveat (Handgeschreven & Persoonlijk)', className: 'font-caveat' },
-    { id: 'font-roboto-mono', name: 'Roboto Mono (Modern & Techy)', className: 'font-roboto-mono' },,
+    { id: 'font-roboto-mono', name: 'Roboto Mono (Modern & Techy)', className: 'font-roboto-mono' },
 ];
 
 export const ANIMATIONS: { id: string, name: string, className: string }[] = [
@@ -179,37 +124,37 @@ export const MOCK_APP_DATA: AppData = {
   },
   linkGroups: [
     {
-      id: 1,
+      id: "1",
       title: "⭐️ Featured Content",
       links: [
-        { id: 1, title: "🎬 My Latest YouTube Video", url: "#", style: 'fill' },
-        { id: 2, title: "🛍️ Shop My Outfits", url: "#", style: 'fill' },
+        { id: "1", title: "🎬 My Latest YouTube Video", url: "#", style: 'fill' },
+        { id: "2", title: "🛍️ Shop My Outfits", url: "#", style: 'fill' },
         { 
-          id: 5, 
+          id: "5", 
           title: "My New Secret Project", 
           url: "#", 
           style: 'fill', 
           isCountdownEnabled: true,
           countdownTitle: "🤫 Something BIG is Coming...",
-          countdownEndDate: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 minutes from now
+          countdownEndDate: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
         },
       ],
     },
     {
-      id: 2,
+      id: "2",
       title: "More Links",
       links: [
-        { id: 3, title: "✈️ My Travel Blog", url: "#", style: 'outline' },
-        { id: 4, title: "💖 Support My Work", url: "#", style: 'fill' },
+        { id: "3", title: "✈️ My Travel Blog", url: "#", style: 'outline' },
+        { id: "4", title: "💖 Support My Work", url: "#", style: 'fill' },
       ],
     },
   ],
   socials: [
-    { id: 1, platform: 'TikTok', url: "#" },
-    { id: 2, platform: 'Instagram', url: "#" },
-    { id: 3, platform: 'YouTube', url: "#" },
-    { id: 4, platform: 'Twitter', url: "#" },
-    { id: 5, platform: 'Facebook', url: "#" },
+    { id: "1", platform: 'TikTok', url: "#" },
+    { id: "2", platform: 'Instagram', url: "#" },
+    { id: "3", platform: 'YouTube', url: "#" },
+    { id: "4", platform: 'Twitter', url: "#" },
+    { id: "5", platform: 'Facebook', url: "#" },
   ],
   palettes: DEFAULT_PALETTES,
   customization: {
