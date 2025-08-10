@@ -253,6 +253,35 @@ app.post("/users/login", async (req, res) => {
   }
 });
 
+app.get("/users/:username/publicData", async (req, res) => {
+  try {
+    const { username } = req.params;
+    if (!username) {
+      return res.status(400).send({ message: "Username is required." });
+    }
+
+    const userAppDataRef = db.ref(`users/${username}/appData`);
+    const snapshot = await userAppDataRef.once('value');
+
+    if (!snapshot.exists()) {
+      return res.status(404).send({ message: "User not found." });
+    }
+
+    const fullData = snapshot.val();
+    
+    // Verwijder gevoelige informatie voordat we het terugsturen
+    delete fullData.adminKey; 
+
+    // Transformeer de data naar het array-formaat dat de frontend verwacht
+    const publicData = transformRtdbObjectsToArrays(fullData);
+
+    res.status(200).send(publicData);
+  } catch (error) {
+    console.error("Error in /users/:username/publicData GET:", error);
+    res.status(500).send({ message: "Internal Server Error. Could not retrieve public app data." });
+  }
+});
+
 // App Data Routes
 app.get("/users/:username/appData", authenticateToken, async (req, res) => {
   try {

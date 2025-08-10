@@ -76,11 +76,12 @@ export interface AppDataActions {
 interface UseAppDataProps {
   isAuthenticated: boolean;
   loggedInUsername: string | null;
+  profileUsername: string | null;
   logout: () => void;
 }
 
 export const useAppData = (
-  { isAuthenticated, loggedInUsername, logout }: UseAppDataProps
+  { isAuthenticated, loggedInUsername, profileUsername, logout }: UseAppDataProps
 ): [AppData | null, boolean, AppDataActions, React.Dispatch<React.SetStateAction<any>>] => {
   const [appData, setAppDataInternal] = useState<AppData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -88,26 +89,26 @@ export const useAppData = (
   const [confirmationState, setConfirmationState] = useState<any>(null);
 
   const updateAppData = useCallback((newData: AppData, undoable: boolean = true) => {
-    if (undoable) {
+    if (undoable && appData) {
       setHistory(prevHistory => {
-        const newHistory = [appData!, ...prevHistory];
+        const newHistory = [appData, ...prevHistory];
         if (newHistory.length > 20) newHistory.pop();
         return newHistory;
       });
     }
     setAppDataInternal(newData);
     
-    if (isAuthenticated && loggedInUsername) {
+    // Alleen opslaan als de ingelogde gebruiker zijn eigen pagina bewerkt
+    if (isAuthenticated && loggedInUsername && (loggedInUsername === profileUsername)) {
       backendApi.appData.updateAppData(loggedInUsername, newData).catch(err => {
         console.error("Failed to sync data with backend:", err);
         toast.error("Could not save changes to the server.");
-        // Optioneel: zet de state terug naar de vorige werkende staat
         if (undoable && history.length > 0) {
           setAppDataInternal(history[0]);
         }
       });
     }
-  }, [appData, isAuthenticated, loggedInUsername, history]);
+  }, [appData, isAuthenticated, loggedInUsername, profileUsername, history]);
   
   const handleUndo = useCallback(() => {
     if (history.length > 0) {
@@ -122,12 +123,19 @@ export const useAppData = (
     setLoading(true);
     try {
       let rawData;
-      if (!isAuthenticated || !loggedInUsername) {
-        rawData = MOCK_APP_DATA;
-      } else {
-        const response = await backendApi.appData.getAppData(loggedInUsername);
+      if (isAuthenticated && loggedInUsername === profileUsername) {
+        // Ingelogde admin bekijkt zijn eigen pagina -> haal volledige data op
+        const response = await backendApi.appData.getAppData(loggedInUsername!);
         rawData = response.data;
+      } else if (profileUsername) {
+        // Publieke bezoeker (of admin die andermans pagina bekijkt) -> haal publieke data op
+        const response = await backendApi.appData.getPublicAppData(profileUsername);
+        rawData = response.data;
+      } else {
+        // Geen username in URL -> toon mock data
+        rawData = MOCK_APP_DATA;
       }
+     
       
       const completeData = mergeWithDefaults(rawData, MOCK_APP_DATA);
       const finalData = Array.isArray(completeData.linkGroups) ? completeData : transformRtdbObjectsToArrays(completeData);
@@ -136,13 +144,25 @@ export const useAppData = (
       setHistory([]); // Reset history after a full refetch
     } catch (error) {
       console.error("Failed to refetch app data:", error);
-      if (isAuthenticated) { logout(); }
-      setAppDataInternal(MOCK_APP_DATA);
+      if (error.response?.status === 404) {
+          toast.error("This user profile does not exist.");
+          setAppDataInternal(null);
+      } else {
+          toast.error("Could not load page data. Please check your connection and refresh.");
+          // Toon de mock data als fallback, zodat de pagina niet volledig crasht
+          if (!appData) {
+            setAppDataInternal(MOCK_APP_DATA);
+          }
+      }
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, loggedInUsername, logout]);
+  }, [isAuthenticated, loggedInUsername, profileUsername, logout]); 
 
+  useEffect(() => {
+    refetchData();
+  }, [refetchData]); // refetchData bevat nu alle dependencies
+  
   // --- Implementaties ---
   const handleProfileChange = useCallback(async (updates: Partial<Profile>) => {
     if (!appData) return;
@@ -406,12 +426,6 @@ export const useAppData = (
     toast.success("Links organized with AI!");
   }, [appData, updateAppData]);
 
-
-  // Effect om data te fetchen
-  useEffect(() => {
-    refetchData();
-  }, [isAuthenticated, loggedInUsername, refetchData, logout]); // refetchData is nu een dependency
-  
   const actions: AppDataActions = {
     handleProfileChange,
     handleCustomizationChange,

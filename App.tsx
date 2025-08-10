@@ -1,3 +1,5 @@
+// --- START OF FILE App.tsx (DEFINITIEF GECORRIGEERD) ---
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppData, LinkGroup } from './types';
 import ProfileHeader from './components/ProfileHeader';
@@ -27,7 +29,6 @@ const UndoIcon: React.FC = () => (
   </svg>
 );
 
-// --- TOEGEVOEGD: Logout Icoon ---
 const LogoutIcon: React.FC = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
@@ -39,6 +40,11 @@ const App: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
+  const profileUsername = useMemo(() => {
+    const path = window.location.pathname.slice(1).split('/')[0];
+    return path || null;
+  }, []);
+  
   const {
     authInfo,
     login,
@@ -53,6 +59,7 @@ const App: React.FC = () => {
   ] = useAppData({
     isAuthenticated: authInfo.isAuthenticated,
     loggedInUsername: authInfo.loggedInUsername,
+    profileUsername: profileUsername, 
     logout: logout,
   });
 
@@ -63,16 +70,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!appData) return;
-
     const root = window.document.documentElement;
     const newTheme = customization.theme || 'light';
     root.classList.remove(newTheme === 'light' ? 'dark' : 'light');
     root.classList.add(newTheme);
     setTheme(newTheme);
-
     const basePalette = appData.palettes.find((p) => p.id === 'default')!;
     let colors = newTheme === 'light' ? basePalette.light : basePalette.dark;
-
     if (customization.paletteId === 'custom' && customization.customColors) {
       const customThemeColors = customization.customColors[newTheme] || {};
       colors = { ...colors, ...customThemeColors };
@@ -80,7 +84,6 @@ const App: React.FC = () => {
       const selectedPalette = appData.palettes.find((p) => p.id === customization.paletteId) || basePalette;
       colors = newTheme === 'light' ? selectedPalette.light : selectedPalette.dark;
     }
-
     Object.entries(colors).forEach(([key, value]) => {
       if (value) root.style.setProperty(key, value as string);
     });
@@ -89,10 +92,12 @@ const App: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const editMode = params.get('edit') === 'true';
-    if (editMode && !authInfo.isAuthenticated) {
-      setIsAuthModalOpen(true);
+    if (editMode && authInfo.isAuthenticated && authInfo.loggedInUsername === profileUsername) {
+        setIsEditPanelOpen(true);
+    } else if (editMode && !authInfo.isAuthenticated) {
+        setIsAuthModalOpen(true);
     }
-  }, [authInfo.isAuthenticated]);
+  }, [authInfo.isAuthenticated, authInfo.loggedInUsername, profileUsername]);
 
   const toggleTheme = () => {
     if (!appData) return;
@@ -106,14 +111,9 @@ const App: React.FC = () => {
       return;
     }
     try {
-      // De backend geeft nu al de correcte JSON data terug
       const response = await backendApi.appData.exportAppData(authInfo.loggedInUsername);
-      
-      // De data is al een JSON-object, we hoeven het alleen maar om te zetten naar een string
-      // voor de Blob.
       const dataString = JSON.stringify(response.data, null, 2);
       const blob = new Blob([dataString], { type: 'application/json' });
-      
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -135,31 +135,20 @@ const App: React.FC = () => {
       event.target.value = '';
       return;
     }
-
     const file = event.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
         const text = e.target?.result;
         if (typeof text === 'string') {
           const importedData: AppData = JSON.parse(text);
-          if (
-            importedData.profile &&
-            importedData.linkGroups &&
-            importedData.customization &&
-            importedData.socials &&
-            importedData.palettes
-          ) {
+          if (importedData.profile && importedData.linkGroups && importedData.customization && importedData.socials && importedData.palettes) {
             await backendApi.appData.importAppData(authInfo.loggedInUsername!, importedData);
             toast.success('Data imported successfully!');
-            
-            // --- TOEGEVOEGD: Roep de refetch functie aan ---
             if (appDataActions.refetchData) {
               await appDataActions.refetchData();
             }
-            
             setIsEditPanelOpen(false);
           } else {
             toast.error("Invalid data file format.");
@@ -174,7 +163,7 @@ const App: React.FC = () => {
     event.target.value = '';
   };
 
-  if ((authInfo.loading || appLoading) && !appData) {
+  if (appLoading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
         <p>Loading...</p>
@@ -182,11 +171,22 @@ const App: React.FC = () => {
     );
   }
 
-  const displayAppData = appData || MOCK_APP_DATA;
+  if (!appData) {
+      return (
+          <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-center">
+              <div>
+                  <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">User Not Found</h1>
+                  <p className="text-gray-600 dark:text-gray-400">The profile you are looking for does not exist.</p>
+              </div>
+          </div>
+      );
+  }
+
+  const displayAppData = appData;
   const selectedFont = FONTS.find(f => f.id === customization.fontId) || FONTS[0];
-
   const animationDelayValue = `${200 + (displayAppData.linkGroups?.flatMap(g => g.links || []).length || 0) * 100}ms`;
-
+  const isAdminViewingOwnPage = authInfo.isAuthenticated && authInfo.loggedInUsername === profileUsername;
+  
   return (
     <div className={`relative min-h-screen ${selectedFont.className} bg-[var(--background-color)] text-[var(--text-primary)] transition-colors duration-300`}>
       <Toaster />
@@ -201,7 +201,7 @@ const App: React.FC = () => {
       <div className="relative z-10">
         <div className="container mx-auto p-4 max-w-lg relative">
           <div className="absolute top-4 right-4 flex items-center space-x-2">
-            {authInfo.isAuthenticated && (
+            {isAdminViewingOwnPage && (
               <>
                 <button
                   onClick={appDataActions.handleUndo}
@@ -218,7 +218,6 @@ const App: React.FC = () => {
                 >
                   <EditIcon />
                 </button>
-                {/* --- TOEGEVOEGD: Logout Knop --- */}
                 <button
                     onClick={logout}
                     className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200"
@@ -247,7 +246,8 @@ const App: React.FC = () => {
                         <LinkButton
                           link={link}
                           animationId={displayAppData.customization.linkAnimation}
-                          ownerUsername={displayAppData.profile.name}
+                          // --- FIX 2: Gebruik de username van het profiel, niet de weergavenaam ---
+                          ownerUsername={profileUsername!}
                         />
                       </div>
                     ))}
@@ -272,7 +272,7 @@ const App: React.FC = () => {
           </main>
         </div>
 
-        {authInfo.isAuthenticated && appData && appDataActions && (
+        {isAdminViewingOwnPage && appData && appDataActions && (
           <EditPanel
             isOpen={isEditPanelOpen}
             onClose={() => setIsEditPanelOpen(false)}
@@ -308,10 +308,13 @@ const App: React.FC = () => {
           onLoginSuccess={async (token, username) => {
             await login({ token, username });
             setIsAuthModalOpen(false);
+            // --- FIX 1: Voeg de redirect toe aan onLoginSuccess ---
+            window.location.href = `/${username}`;
           }}
           onRegisterSuccess={async (token, username) => {
              await login({ token, username });
-             setIsAuthModalOpen(false)
+             setIsAuthModalOpen(false);
+             window.location.href = `/${username}`; 
           }}
         />
         {appDataActions && appDataActions.confirmationState?.isOpen && (

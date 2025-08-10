@@ -28,6 +28,8 @@ const auth = {
 };
 
 const appData = {
+  getPublicAppData: (username: string) => backendApiClient.get<AppData>(`/users/${username}/publicData`),
+  
   getAppData: (username: string) => backendApiClient.get<AppData>(`/users/${username}/appData`),
   updateAppData: (username: string, data: AppData) => backendApiClient.put(`/users/${username}/appData`, data),
   exportAppData: (username: string) => backendApiClient.get(`/users/${username}/export`),
