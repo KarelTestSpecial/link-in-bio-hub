@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import backendApi from '../services/backendApi';
 
 interface AuthModalProps {
@@ -6,6 +6,7 @@ interface AuthModalProps {
   onClose: () => void;
   onLoginSuccess: (token: string, username: string) => void;
   onRegisterSuccess: (token: string, username: string) => void;
+  initialView?: 'login' | 'register';
 }
 
 const CloseIcon: React.FC = () => (
@@ -14,13 +15,19 @@ const CloseIcon: React.FC = () => (
   </svg>
 );
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, onRegisterSuccess }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, onRegisterSuccess, initialView = 'login' }) => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(initialView === 'register');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsRegistering(initialView === 'register');
+    }
+  }, [isOpen, initialView]);
 
   if (!isOpen) return null;
 

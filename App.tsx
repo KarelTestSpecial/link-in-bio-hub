@@ -15,6 +15,7 @@ import { useAuth } from './hooks/useAuth';
 import { useAppData } from './hooks/useAppData';
 import backendApi from './services/backendApi';
 import toast, { Toaster } from 'react-hot-toast';
+import DocumentationPage from './components/DocumentationPage';
 
 const EditIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -37,13 +38,20 @@ const LogoutIcon: React.FC = () => (
 
 const App: React.FC = () => {
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalState, setAuthModalState] = useState({ isOpen: false, view: 'login' as 'login' | 'register' });
   const [dynamicAppData, setDynamicAppData] = useState<AppData | null>(null);
 
-  const profileUsername = useMemo(() => {
-    const path = window.location.pathname.slice(1).split('/')[0];
-    return path || null;
-  }, []);
+  const { pathname, hash } = window.location;
+  const pathSegments = pathname.slice(1).split('/');
+  const route = pathSegments[0];
+  const profileUsername = route === 'docs' ? null : route || null;
+
+  useEffect(() => {
+    if (hash === '#signup') {
+      setAuthModalState({ isOpen: true, view: 'register' });
+      history.replaceState(null, '', ' ');
+    }
+  }, [hash]);
   
   const {
     authInfo,
@@ -64,12 +72,12 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!profileUsername) {
+    if (!profileUsername && route !== 'docs') {
       setDynamicAppData(MOCK_APP_DATA);
     } else {
       setDynamicAppData(fetchedAppData);
     }
-  }, [profileUsername, fetchedAppData]);
+  }, [profileUsername, fetchedAppData, route]);
 
   const customization = useMemo(
     () => dynamicAppData?.customization || MOCK_APP_DATA.customization,
@@ -79,24 +87,25 @@ const App: React.FC = () => {
   const currentTheme = useMemo(() => customization.theme || 'light', [customization]);
 
   useEffect(() => {
-    if (!dynamicAppData) return;
+    if (!dynamicAppData && route !== 'docs') return;
     const root = window.document.documentElement;
     root.classList.remove(currentTheme === 'light' ? 'dark' : 'light');
     root.classList.add(currentTheme);
     
-    const basePalette = dynamicAppData.palettes.find((p) => p.id === 'default')!;
+    const paletteSource = dynamicAppData || MOCK_APP_DATA;
+    const basePalette = paletteSource.palettes.find((p) => p.id === 'default')!;
     let colors = currentTheme === 'light' ? basePalette.light : basePalette.dark;
     if (customization.paletteId === 'custom' && customization.customColors) {
       const customThemeColors = customization.customColors[currentTheme] || {};
       colors = { ...colors, ...customThemeColors };
     } else {
-      const selectedPalette = dynamicAppData.palettes.find((p) => p.id === customization.paletteId) || basePalette;
+      const selectedPalette = paletteSource.palettes.find((p) => p.id === customization.paletteId) || basePalette;
       colors = currentTheme === 'light' ? selectedPalette.light : selectedPalette.dark;
     }
     Object.entries(colors).forEach(([key, value]) => {
       if (value) root.style.setProperty(key, value as string);
     });
-  }, [customization, dynamicAppData, currentTheme]);
+  }, [customization, dynamicAppData, currentTheme, route]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -104,15 +113,15 @@ const App: React.FC = () => {
     if (editMode && authInfo.isAuthenticated && authInfo.loggedInUsername === profileUsername) {
         setIsEditPanelOpen(true);
     } else if (editMode && !authInfo.isAuthenticated) {
-        setIsAuthModalOpen(true);
+        setAuthModalState({ isOpen: true, view: 'login' });
     }
   }, [authInfo.isAuthenticated, authInfo.loggedInUsername, profileUsername]);
 
   const toggleTheme = () => {
-    if (!dynamicAppData) return;
-    const newTheme = dynamicAppData.customization.theme === 'light' ? 'dark' : 'light';
+    const data = dynamicAppData || MOCK_APP_DATA;
+    const newTheme = data.customization.theme === 'light' ? 'dark' : 'light';
     
-    const updatedData = JSON.parse(JSON.stringify(dynamicAppData));
+    const updatedData = JSON.parse(JSON.stringify(data));
     updatedData.customization.theme = newTheme;
     setDynamicAppData(updatedData);
 
@@ -179,6 +188,10 @@ const App: React.FC = () => {
     event.target.value = '';
   };
 
+  if (route === 'docs') {
+    return <DocumentationPage />;
+  }
+
   const isLoading = appLoading && !!profileUsername;
   const isNotFound = !dynamicAppData && !!profileUsername && !appLoading;
 
@@ -212,16 +225,18 @@ const App: React.FC = () => {
   return (
     <div className={`relative min-h-screen ${selectedFont.className} bg-[var(--background-color)] text-[var(--text-primary)] transition-colors duration-300`}>
       <Toaster />
-      <div
-        className="absolute inset-0 bg-cover bg-center z-0"
-        style={{ backgroundImage: dynamicAppData.customization.backgroundImageUrl ? `url('${dynamicAppData.customization.backgroundImageUrl}')` : 'none' }}
-      />
-      <div
-        className="absolute inset-0 z-0 transition-colors duration-500"
-        style={{ backgroundColor: dynamicAppData.customization.backgroundImageUrl ? 'rgba(0,0,0,0.5)' : 'transparent' }}
-      />
       <div className="relative z-10">
         <div className="container mx-auto p-4 max-w-lg relative">
+          <div className="absolute top-4 left-4">
+            {!authInfo.isAuthenticated && (
+                <button
+                    onClick={() => setAuthModalState({ isOpen: true, view: 'register' })}
+                    className="px-3 py-2 text-sm font-medium rounded-md text-white bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
+                >
+                    Sign Up For Free
+                </button>
+            )}
+          </div>
           <div className="absolute top-4 right-4 flex items-center space-x-2">
             {isAdminViewingOwnPage && (
               <>
@@ -254,15 +269,23 @@ const App: React.FC = () => {
             )}
             {!authInfo.isAuthenticated && (
                 <button
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="px-3 py-2 text-sm font-medium rounded-md text-[var(--text-primary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors"
+                    onClick={() => setAuthModalState({ isOpen: true, view: 'login' })}
+                    className="px-3 py-2 text-sm font-medium rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
-                  Admin Login
+                    Login
                 </button>
             )}
             <ThemeToggle theme={currentTheme} toggleTheme={toggleTheme} />
           </div>
           <main className="flex flex-col items-center pt-12">
+            <div
+              className="absolute inset-0 bg-cover bg-center z-0"
+              style={{ backgroundImage: dynamicAppData.customization.backgroundImageUrl ? `url('${dynamicAppData.customization.backgroundImageUrl}')` : 'none' }}
+            />
+            <div
+              className="absolute inset-0 z-0 transition-colors duration-500"
+              style={{ backgroundColor: dynamicAppData.customization.backgroundImageUrl ? 'rgba(0,0,0,0.5)' : 'transparent' }}
+            />
             <div className="opacity-0 animate-fade-in-up">
               <ProfileHeader profile={dynamicAppData.profile} />
             </div>
@@ -291,7 +314,7 @@ const App: React.FC = () => {
               <AskMeAnything influencerName={dynamicAppData.profile.name} influencerBio={dynamicAppData.profile.bio} />
             </div>
             <footer className="text-center mt-12 pb-8">
-              <p className="text-sm text-[var(--text-secondary)]">© 2025 Link-in-bio-Hub. <a href="#" className="underline hover:text-[var(--accent-color)]">View Source</a></p>
+              <p className="text-sm text-[var(--text-secondary)]">© 2025 Link-in-bio-Hub.</p>
             </footer>
           </main>
         </div>
@@ -327,16 +350,17 @@ const App: React.FC = () => {
           />
         )}
         <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
+          isOpen={authModalState.isOpen}
+          initialView={authModalState.view}
+          onClose={() => setAuthModalState({ isOpen: false, view: 'login' })}
           onLoginSuccess={async (token, username) => {
             await login({ token, username });
-            setIsAuthModalOpen(false);
+            setAuthModalState({ isOpen: false, view: 'login' });
             window.location.href = `/${username}`;
           }}
           onRegisterSuccess={async (token, username) => {
              await login({ token, username });
-             setIsAuthModalOpen(false);
+             setAuthModalState({ isOpen: false, view: 'login' });
              window.location.href = `/${username}`; 
           }}
         />

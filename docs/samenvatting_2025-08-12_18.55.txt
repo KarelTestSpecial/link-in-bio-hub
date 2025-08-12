@@ -1,0 +1,22 @@
+**Samenvatting van de wijzigingen (2025-08-12 - Ronde 2)**
+
+**Probleem:**
+Na het implementeren van nieuwe features (documentatiepagina, verbeterde login/sign-up knoppen), crashte de applicatie met een "white screen of death". De console toonde een hardnekkige `Uncaught ReferenceError: useEffect is not defined`-fout.
+
+**Debugging-proces:**
+Het debuggen was complex omdat de foutmelding misleidend was. De fout leek afkomstig te zijn van de `LinkButton`-component, omdat deze als een van de eerste componenten met complexe logica (een countdown-timer die `useEffect` gebruikte) werd gerenderd.
+
+De volgende stappen werden ondernomen in een poging de fout te verhelpen:
+1.  **Code-inspectie & Refactoring:** De `LinkButton`-component werd herhaaldelijk gecontroleerd en herschreven. De `useCountdown`-hook werd geïsoleerd in een apart bestand (`hooks/useCountdown.ts`) om afhankelijkheden te forceren.
+2.  **Cache & Dependencies:** De Vite-cache (`node_modules/.vite`), de `dist`-map, en uiteindelijk de volledige `node_modules`-map en `package-lock.json` werden verwijderd en opnieuw geïnstalleerd om eventuele corruptie in de build-tooling of afhankelijkheden uit te sluiten.
+3.  **Isolatie van het Probleem:** De countdown-functionaliteit werd volledig uit de applicatie verwijderd. Toen de fout bleef bestaan, werd het duidelijk dat de `LinkButton` onschuldig was.
+4.  **Systematische Analyse:** Een volledige scan van alle `.tsx`-bestanden in het project onthulde de ware oorzaak.
+
+**Oorzaak en Oplossing:**
+De `AuthModal.tsx`-component gebruikte de `useEffect`-hook om de `initialView` (login of register) in te stellen, maar de `useEffect`-functie werd niet geïmporteerd uit `react`.
+
+De oplossing was het toevoegen van `useEffect` aan de import-statement in `AuthModal.tsx`:
+`import React, { useState, FormEvent, useEffect } from 'react';`
+
+**Conclusie:**
+De applicatie is nu stabiel en alle eerder geïmplementeerde features (documentatie, verbeterde knoppen, etc.) zijn hersteld en functioneel. De `useEffect`-crash is definitief opgelost.
