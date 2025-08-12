@@ -117,44 +117,32 @@ export const ANIMATIONS: { id: string, name: string, className: string }[] = [
 
 export const MOCK_APP_DATA: AppData = {
   profile: {
-    name: "Alex Doe",
-    handle: "@alexdoelife",
-    avatarUrl: "https://avatar.vercel.sh/alex-doe.svg?text=AD",
-    bio: "Digital Creator ✨ | Exploring the world one city at a time ✈️ | Fuelled by coffee and creativity ☕️",
+    name: "Link-in-bio-Hub",
+    handle: "@linkinbio_hub",
+    avatarUrl: "https://avatar.vercel.sh/link-hub.svg?text=LH",
+    bio: "Your one-stop hub for all your links! Create a beautiful, customizable landing page for your social media bios. Get started for free!",
   },
   linkGroups: [
     {
       id: "1",
-      title: "⭐️ Featured Content",
+      title: "🚀 Get Started",
       links: [
-        { id: "1", title: "🎬 My Latest YouTube Video", url: "#", style: 'fill' },
-        { id: "2", title: "🛍️ Shop My Outfits", url: "#", style: 'fill' },
-        { 
-          id: "5", 
-          title: "My New Secret Project", 
-          url: "#", 
-          style: 'fill', 
-          isCountdownEnabled: true,
-          countdownTitle: "🤫 Something BIG is Coming...",
-          countdownEndDate: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-        },
+        { id: "1", title: "Create Your Own Hub (It's Free!)", url: "#", style: 'fill' },
+        { id: "2", title: "Read the Documentation", url: "#", style: 'fill' },
       ],
     },
     {
       id: "2",
-      title: "More Links",
+      title: "Totally Real User Reviews",
       links: [
-        { id: "3", title: "✈️ My Travel Blog", url: "#", style: 'outline' },
-        { id: "4", title: "💖 Support My Work", url: "#", style: 'fill' },
+        { id: "3", title: "⭐️⭐️⭐️⭐️⭐️ 'Changed my life!' - A.I. Bot #3", url: "#", style: 'outline' },
+        { id: "4", title: "⭐️⭐️⭐️⭐️⭐️ 'My cat has more followers now!' - A Happy User", url: "#", style: 'outline' },
       ],
     },
   ],
   socials: [
-    { id: "1", platform: 'TikTok', url: "#" },
-    { id: "2", platform: 'Instagram', url: "#" },
-    { id: "3", platform: 'YouTube', url: "#" },
-    { id: "4", platform: 'Twitter', url: "#" },
-    { id: "5", platform: 'Facebook', url: "#" },
+    { id: "1", platform: 'GitHub', url: "#" },
+    { id: "2", platform: 'Twitter', url: "#" },
   ],
   palettes: DEFAULT_PALETTES,
   customization: {
@@ -162,7 +150,7 @@ export const MOCK_APP_DATA: AppData = {
     paletteId: 'default',
     customPaletteName: 'Custom',
     fontId: 'font-sans',
-    linkAnimation: 'none',
+    linkAnimation: 'grow',
     backgroundImageUrl: '',
     customColors: {
       light: {},

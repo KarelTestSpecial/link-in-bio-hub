@@ -38,7 +38,7 @@ const LogoutIcon: React.FC = () => (
 const App: React.FC = () => {
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [dynamicAppData, setDynamicAppData] = useState<AppData | null>(null);
 
   const profileUsername = useMemo(() => {
     const path = window.location.pathname.slice(1).split('/')[0];
@@ -63,38 +63,40 @@ const App: React.FC = () => {
     logout: logout,
   });
 
-  const displayAppData = useMemo(() => {
+  useEffect(() => {
     if (!profileUsername) {
-      return MOCK_APP_DATA;
+      setDynamicAppData(MOCK_APP_DATA);
+    } else {
+      setDynamicAppData(fetchedAppData);
     }
-    return fetchedAppData;
   }, [profileUsername, fetchedAppData]);
 
   const customization = useMemo(
-    () => displayAppData?.customization || MOCK_APP_DATA.customization,
-    [displayAppData],
+    () => dynamicAppData?.customization || MOCK_APP_DATA.customization,
+    [dynamicAppData],
   );
 
+  const currentTheme = useMemo(() => customization.theme || 'light', [customization]);
+
   useEffect(() => {
-    if (!displayAppData) return;
+    if (!dynamicAppData) return;
     const root = window.document.documentElement;
-    const newTheme = customization.theme || 'light';
-    root.classList.remove(newTheme === 'light' ? 'dark' : 'light');
-    root.classList.add(newTheme);
-    setTheme(newTheme);
-    const basePalette = displayAppData.palettes.find((p) => p.id === 'default')!;
-    let colors = newTheme === 'light' ? basePalette.light : basePalette.dark;
+    root.classList.remove(currentTheme === 'light' ? 'dark' : 'light');
+    root.classList.add(currentTheme);
+    
+    const basePalette = dynamicAppData.palettes.find((p) => p.id === 'default')!;
+    let colors = currentTheme === 'light' ? basePalette.light : basePalette.dark;
     if (customization.paletteId === 'custom' && customization.customColors) {
-      const customThemeColors = customization.customColors[newTheme] || {};
+      const customThemeColors = customization.customColors[currentTheme] || {};
       colors = { ...colors, ...customThemeColors };
     } else {
-      const selectedPalette = displayAppData.palettes.find((p) => p.id === customization.paletteId) || basePalette;
-      colors = newTheme === 'light' ? selectedPalette.light : selectedPalette.dark;
+      const selectedPalette = dynamicAppData.palettes.find((p) => p.id === customization.paletteId) || basePalette;
+      colors = currentTheme === 'light' ? selectedPalette.light : selectedPalette.dark;
     }
     Object.entries(colors).forEach(([key, value]) => {
       if (value) root.style.setProperty(key, value as string);
     });
-  }, [customization, displayAppData?.palettes, displayAppData]);
+  }, [customization, dynamicAppData, currentTheme]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -107,9 +109,14 @@ const App: React.FC = () => {
   }, [authInfo.isAuthenticated, authInfo.loggedInUsername, profileUsername]);
 
   const toggleTheme = () => {
-    if (!displayAppData) return;
-    const newTheme = displayAppData.customization.theme === 'light' ? 'dark' : 'light';
-    if (appDataActions) {
+    if (!dynamicAppData) return;
+    const newTheme = dynamicAppData.customization.theme === 'light' ? 'dark' : 'light';
+    
+    const updatedData = JSON.parse(JSON.stringify(dynamicAppData));
+    updatedData.customization.theme = newTheme;
+    setDynamicAppData(updatedData);
+
+    if (profileUsername && appDataActions) {
       appDataActions.handleCustomizationChange({ theme: newTheme });
     }
   };
@@ -173,7 +180,7 @@ const App: React.FC = () => {
   };
 
   const isLoading = appLoading && !!profileUsername;
-  const isNotFound = !displayAppData && !!profileUsername;
+  const isNotFound = !dynamicAppData && !!profileUsername && !appLoading;
 
   if (isLoading) {
     return (
@@ -194,12 +201,12 @@ const App: React.FC = () => {
       );
   }
   
-  if (!displayAppData) {
+  if (!dynamicAppData) {
     return null; 
   }
 
   const selectedFont = FONTS.find(f => f.id === customization.fontId) || FONTS[0];
-  const animationDelayValue = `${200 + (displayAppData.linkGroups?.flatMap(g => g.links || []).length || 0) * 100}ms`;
+  const animationDelayValue = `${200 + (dynamicAppData.linkGroups?.flatMap(g => g.links || []).length || 0) * 100}ms`;
   const isAdminViewingOwnPage = authInfo.isAuthenticated && authInfo.loggedInUsername === profileUsername;
   
   return (
@@ -207,11 +214,11 @@ const App: React.FC = () => {
       <Toaster />
       <div
         className="absolute inset-0 bg-cover bg-center z-0"
-        style={{ backgroundImage: displayAppData.customization.backgroundImageUrl ? `url('${displayAppData.customization.backgroundImageUrl}')` : 'none' }}
+        style={{ backgroundImage: dynamicAppData.customization.backgroundImageUrl ? `url('${dynamicAppData.customization.backgroundImageUrl}')` : 'none' }}
       />
       <div
         className="absolute inset-0 z-0 transition-colors duration-500"
-        style={{ backgroundColor: displayAppData.customization.backgroundImageUrl ? 'rgba(0,0,0,0.5)' : 'transparent' }}
+        style={{ backgroundColor: dynamicAppData.customization.backgroundImageUrl ? 'rgba(0,0,0,0.5)' : 'transparent' }}
       />
       <div className="relative z-10">
         <div className="container mx-auto p-4 max-w-lg relative">
@@ -234,7 +241,10 @@ const App: React.FC = () => {
                   <EditIcon />
                 </button>
                 <button
-                    onClick={logout}
+                    onClick={() => {
+                      logout();
+                      window.location.href = '/';
+                    }}
                     className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200"
                     aria-label="Logout"
                 >
@@ -250,17 +260,17 @@ const App: React.FC = () => {
                   Admin Login
                 </button>
             )}
-            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+            <ThemeToggle theme={currentTheme} toggleTheme={toggleTheme} />
           </div>
           <main className="flex flex-col items-center pt-12">
             <div className="opacity-0 animate-fade-in-up">
-              <ProfileHeader profile={displayAppData.profile} />
+              <ProfileHeader profile={dynamicAppData.profile} />
             </div>
             <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              <SocialLinks socials={displayAppData.socials} icons={SOCIAL_ICONS} />
+              <SocialLinks socials={dynamicAppData.socials} icons={SOCIAL_ICONS} />
             </div>
             <div className="w-full mt-8 space-y-2">
-              {displayAppData.linkGroups.map((group: LinkGroup) => (
+              {dynamicAppData.linkGroups.map((group: LinkGroup) => (
                 <div key={group.id} className="w-full">
                   {group.title && <h2 className="text-lg font-bold text-[var(--text-primary)] text-center my-4 opacity-0 animate-fade-in-up">{group.title}</h2>}
                   <div className="space-y-4">
@@ -268,7 +278,7 @@ const App: React.FC = () => {
                       <div key={link.id} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${200 + index * 100}ms` }}>
                         <LinkButton
                           link={link}
-                          animationId={displayAppData.customization.linkAnimation}
+                          animationId={dynamicAppData.customization.linkAnimation}
                           ownerUsername={profileUsername || 'demo'}
                         />
                       </div>
@@ -278,20 +288,20 @@ const App: React.FC = () => {
               ))}
             </div>
             <div className="w-full mt-10 p-6 bg-[var(--surface-color)] rounded-2xl shadow-md border border-[var(--border-color)] opacity-0 animate-fade-in-up" style={{ animationDelay: animationDelayValue }}>
-              <AskMeAnything influencerName={displayAppData.profile.name} influencerBio={displayAppData.profile.bio} />
+              <AskMeAnything influencerName={dynamicAppData.profile.name} influencerBio={dynamicAppData.profile.bio} />
             </div>
             <footer className="text-center mt-12 pb-8">
-              <p className="text-sm text-[var(--text-secondary)]">Created with Link Hub</p>
+              <p className="text-sm text-[var(--text-secondary)]">© 2025 Link-in-bio-Hub. <a href="#" className="underline hover:text-[var(--accent-color)]">View Source</a></p>
             </footer>
           </main>
         </div>
 
-        {isAdminViewingOwnPage && displayAppData && appDataActions && (
+        {isAdminViewingOwnPage && dynamicAppData && appDataActions && (
           <EditPanel
             isOpen={isEditPanelOpen}
             onClose={() => setIsEditPanelOpen(false)}
-            appData={displayAppData}
-            theme={theme}
+            appData={dynamicAppData}
+            theme={currentTheme}
             onExport={handleExport}
             onImport={handleImport}
             onProfileChange={appDataActions.handleProfileChange}
