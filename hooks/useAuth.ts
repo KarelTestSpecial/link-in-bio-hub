@@ -33,7 +33,12 @@ export const useAuth = (): { authInfo: AuthInfo, login: AuthActions['login'], re
         loading: false,
       });
     } else {
-      setAuthInfo(prev => ({ ...prev, loading: false }));
+      setAuthInfo({
+        isAuthenticated: false,
+        authToken: null,
+        loggedInUsername: null,
+        loading: false,
+      });
     }
   }, []);
 

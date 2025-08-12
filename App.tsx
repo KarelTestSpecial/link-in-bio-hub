@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { AppData, LinkGroup } from './types';
 import ProfileHeader from './components/ProfileHeader';
 import LinkButton from './components/LinkButton';
+import ActionButton from './components/ActionButton';
 import SocialLinks from './components/SocialLinks';
 import AskMeAnything from './components/AskMeAnything';
 import ThemeToggle from './components/ThemeToggle';
@@ -45,13 +46,6 @@ const App: React.FC = () => {
   const pathSegments = pathname.slice(1).split('/');
   const route = pathSegments[0];
   const profileUsername = route === 'docs' ? null : route || null;
-
-  useEffect(() => {
-    if (hash === '#signup') {
-      setAuthModalState({ isOpen: true, view: 'register' });
-      history.replaceState(null, '', ' ');
-    }
-  }, [hash]);
   
   const {
     authInfo,
@@ -224,10 +218,10 @@ const App: React.FC = () => {
   
   return (
     <div className={`relative min-h-screen ${selectedFont.className} bg-[var(--background-color)] text-[var(--text-primary)] transition-colors duration-300`}>
-      <Toaster />
+      <Toaster containerClassName="pointer-events-none" />
       <div className="relative z-10">
         <div className="container mx-auto p-4 max-w-lg relative">
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 left-4 z-10">
             {!authInfo.isAuthenticated && (
                 <button
                     onClick={() => setAuthModalState({ isOpen: true, view: 'register' })}
@@ -237,7 +231,7 @@ const App: React.FC = () => {
                 </button>
             )}
           </div>
-          <div className="absolute top-4 right-4 flex items-center space-x-2">
+          <div className="absolute top-4 right-4 flex items-center space-x-2 z-10">
             {isAdminViewingOwnPage && (
               <>
                 <button
@@ -277,7 +271,7 @@ const App: React.FC = () => {
             )}
             <ThemeToggle theme={currentTheme} toggleTheme={toggleTheme} />
           </div>
-          <main className="flex flex-col items-center pt-12">
+          <main className="relative flex flex-col items-center pt-12">
             <div
               className="absolute inset-0 bg-cover bg-center z-0"
               style={{ backgroundImage: dynamicAppData.customization.backgroundImageUrl ? `url('${dynamicAppData.customization.backgroundImageUrl}')` : 'none' }}
@@ -286,36 +280,46 @@ const App: React.FC = () => {
               className="absolute inset-0 z-0 transition-colors duration-500"
               style={{ backgroundColor: dynamicAppData.customization.backgroundImageUrl ? 'rgba(0,0,0,0.5)' : 'transparent' }}
             />
-            <div className="opacity-0 animate-fade-in-up">
-              <ProfileHeader profile={dynamicAppData.profile} />
-            </div>
-            <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              <SocialLinks socials={dynamicAppData.socials} icons={SOCIAL_ICONS} />
-            </div>
-            <div className="w-full mt-8 space-y-2">
-              {dynamicAppData.linkGroups.map((group: LinkGroup) => (
-                <div key={group.id} className="w-full">
-                  {group.title && <h2 className="text-lg font-bold text-[var(--text-primary)] text-center my-4 opacity-0 animate-fade-in-up">{group.title}</h2>}
-                  <div className="space-y-4">
-                    {Array.isArray(group.links) && group.links.map((link, index) => (
-                      <div key={link.id} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${200 + index * 100}ms` }}>
-                        <LinkButton
-                          link={link}
-                          animationId={dynamicAppData.customization.linkAnimation}
-                          ownerUsername={profileUsername || 'demo'}
-                        />
-                      </div>
-                    ))}
+            <div className="relative z-10 flex flex-col items-center w-full">
+              <div className="opacity-0 animate-fade-in-up">
+                <ProfileHeader profile={dynamicAppData.profile} />
+              </div>
+              <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <SocialLinks socials={dynamicAppData.socials} icons={SOCIAL_ICONS} />
+              </div>
+              <div className="w-full mt-8 space-y-2">
+                {dynamicAppData.linkGroups.map((group: LinkGroup) => (
+                  <div key={group.id} className="w-full">
+                    {group.title && <h2 className="text-lg font-bold text-[var(--text-primary)] text-center my-4 opacity-0 animate-fade-in-up">{group.title}</h2>}
+                    <div className="space-y-4">
+                      {Array.isArray(group.links) && group.links.map((link, index) => (
+                        <div key={link.id} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${200 + index * 100}ms` }}>
+                          {link.url === '#signup' ? (
+                            <ActionButton
+                              link={link}
+                              animationId={dynamicAppData.customization.linkAnimation}
+                              onClick={() => setAuthModalState({ isOpen: true, view: 'register' })}
+                            />
+                          ) : (
+                            <LinkButton
+                              link={link}
+                              animationId={dynamicAppData.customization.linkAnimation}
+                              ownerUsername={profileUsername || 'demo'}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="w-full mt-10 p-6 bg-[var(--surface-color)] rounded-2xl shadow-md border border-[var(--border-color)] opacity-0 animate-fade-in-up" style={{ animationDelay: animationDelayValue }}>
+                <AskMeAnything influencerName={dynamicAppData.profile.name} influencerBio={dynamicAppData.profile.bio} />
+              </div>
+              <footer className="text-center mt-12 pb-8">
+                <p className="text-sm text-[var(--text-secondary)]">© 2025 Link-in-bio-Hub.</p>
+              </footer>
             </div>
-            <div className="w-full mt-10 p-6 bg-[var(--surface-color)] rounded-2xl shadow-md border border-[var(--border-color)] opacity-0 animate-fade-in-up" style={{ animationDelay: animationDelayValue }}>
-              <AskMeAnything influencerName={dynamicAppData.profile.name} influencerBio={dynamicAppData.profile.bio} />
-            </div>
-            <footer className="text-center mt-12 pb-8">
-              <p className="text-sm text-[var(--text-secondary)]">© 2025 Link-in-bio-Hub.</p>
-            </footer>
           </main>
         </div>
 

@@ -127,8 +127,8 @@ export const MOCK_APP_DATA: AppData = {
       id: "1",
       title: "🚀 Get Started",
       links: [
-        { id: "1", title: "Create Your Own Hub (It's Free!)", url: "#", style: 'fill' },
-        { id: "2", title: "Read the Documentation", url: "#", style: 'fill' },
+        { id: "1", title: "Create Your Own Hub (It's Free!)", url: "#signup", style: 'fill' },
+        { id: "2", title: "Read the Documentation", url: "/docs", style: 'fill' },
       ],
     },
     {

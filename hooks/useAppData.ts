@@ -120,7 +120,9 @@ export const useAppData = (
   }, [history, updateAppData]);
 
   const refetchData = useCallback(async () => {
-    setLoading(true);
+    if (profileUsername) {
+      setLoading(true);
+    }
     try {
       let rawData;
       if (isAuthenticated && loggedInUsername === profileUsername) {

@@ -7,9 +7,10 @@ interface LinkButtonProps {
   link: Link;
   animationId?: string;
   ownerUsername: string;
+  onClick?: () => void;
 }
 
-const LinkButton: React.FC<LinkButtonProps> = ({ link, animationId, ownerUsername }) => {
+const LinkButton: React.FC<LinkButtonProps> = ({ link, animationId, ownerUsername, onClick }) => {
   // Defensive check to prevent crashes on invalid data
   if (!link || typeof link.url !== 'string' || typeof link.title !== 'string') {
     return null;
@@ -37,6 +38,12 @@ const LinkButton: React.FC<LinkButtonProps> = ({ link, animationId, ownerUsernam
   const isExternal = link.url.startsWith('http://') || link.url.startsWith('https');
 
   const handleClick = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onClick) {
+      event.preventDefault();
+      onClick();
+      return;
+    }
+
     if (ownerUsername && link.id) {
         try {
             await backendApi.analytics.registerClick(ownerUsername, link.id);
