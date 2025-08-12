@@ -52,7 +52,7 @@ const App: React.FC = () => {
   } = useAuth();
 
   const [
-    appData,
+    fetchedAppData,
     appLoading,
     appDataActions,
     setConfirmationState,
@@ -63,31 +63,38 @@ const App: React.FC = () => {
     logout: logout,
   });
 
+  const displayAppData = useMemo(() => {
+    if (!profileUsername) {
+      return MOCK_APP_DATA;
+    }
+    return fetchedAppData;
+  }, [profileUsername, fetchedAppData]);
+
   const customization = useMemo(
-    () => appData?.customization || MOCK_APP_DATA.customization,
-    [appData],
+    () => displayAppData?.customization || MOCK_APP_DATA.customization,
+    [displayAppData],
   );
 
   useEffect(() => {
-    if (!appData) return;
+    if (!displayAppData) return;
     const root = window.document.documentElement;
     const newTheme = customization.theme || 'light';
     root.classList.remove(newTheme === 'light' ? 'dark' : 'light');
     root.classList.add(newTheme);
     setTheme(newTheme);
-    const basePalette = appData.palettes.find((p) => p.id === 'default')!;
+    const basePalette = displayAppData.palettes.find((p) => p.id === 'default')!;
     let colors = newTheme === 'light' ? basePalette.light : basePalette.dark;
     if (customization.paletteId === 'custom' && customization.customColors) {
       const customThemeColors = customization.customColors[newTheme] || {};
       colors = { ...colors, ...customThemeColors };
     } else {
-      const selectedPalette = appData.palettes.find((p) => p.id === customization.paletteId) || basePalette;
+      const selectedPalette = displayAppData.palettes.find((p) => p.id === customization.paletteId) || basePalette;
       colors = newTheme === 'light' ? selectedPalette.light : selectedPalette.dark;
     }
     Object.entries(colors).forEach(([key, value]) => {
       if (value) root.style.setProperty(key, value as string);
     });
-  }, [customization, appData?.palettes, appData]);
+  }, [customization, displayAppData?.palettes, displayAppData]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -100,9 +107,11 @@ const App: React.FC = () => {
   }, [authInfo.isAuthenticated, authInfo.loggedInUsername, profileUsername]);
 
   const toggleTheme = () => {
-    if (!appData) return;
-    const newTheme = appData.customization.theme === 'light' ? 'dark' : 'light';
-    appDataActions.handleCustomizationChange({ theme: newTheme });
+    if (!displayAppData) return;
+    const newTheme = displayAppData.customization.theme === 'light' ? 'dark' : 'light';
+    if (appDataActions) {
+      appDataActions.handleCustomizationChange({ theme: newTheme });
+    }
   };
 
   const handleExport = async () => {
@@ -163,7 +172,10 @@ const App: React.FC = () => {
     event.target.value = '';
   };
 
-  if (appLoading) {
+  const isLoading = appLoading && !!profileUsername;
+  const isNotFound = !displayAppData && !!profileUsername;
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
         <p>Loading...</p>
@@ -171,7 +183,7 @@ const App: React.FC = () => {
     );
   }
 
-  if (!appData) {
+  if (isNotFound) {
       return (
           <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-center">
               <div>
@@ -181,8 +193,11 @@ const App: React.FC = () => {
           </div>
       );
   }
+  
+  if (!displayAppData) {
+    return null; 
+  }
 
-  const displayAppData = appData;
   const selectedFont = FONTS.find(f => f.id === customization.fontId) || FONTS[0];
   const animationDelayValue = `${200 + (displayAppData.linkGroups?.flatMap(g => g.links || []).length || 0) * 100}ms`;
   const isAdminViewingOwnPage = authInfo.isAuthenticated && authInfo.loggedInUsername === profileUsername;
@@ -227,6 +242,14 @@ const App: React.FC = () => {
                 </button>
               </>
             )}
+            {!authInfo.isAuthenticated && (
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="px-3 py-2 text-sm font-medium rounded-md text-[var(--text-primary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors"
+                >
+                  Admin Login
+                </button>
+            )}
             <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
           </div>
           <main className="flex flex-col items-center pt-12">
@@ -246,8 +269,7 @@ const App: React.FC = () => {
                         <LinkButton
                           link={link}
                           animationId={displayAppData.customization.linkAnimation}
-                          // --- FIX 2: Gebruik de username van het profiel, niet de weergavenaam ---
-                          ownerUsername={profileUsername!}
+                          ownerUsername={profileUsername || 'demo'}
                         />
                       </div>
                     ))}
@@ -260,23 +282,15 @@ const App: React.FC = () => {
             </div>
             <footer className="text-center mt-12 pb-8">
               <p className="text-sm text-[var(--text-secondary)]">Created with Link Hub</p>
-              {!authInfo.isAuthenticated && (
-                <button
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="mt-2 text-xs text-[var(--text-secondary)] underline hover:text-[var(--accent-color)] transition-colors"
-                >
-                  Admin Login
-                </button>
-              )}
             </footer>
           </main>
         </div>
 
-        {isAdminViewingOwnPage && appData && appDataActions && (
+        {isAdminViewingOwnPage && displayAppData && appDataActions && (
           <EditPanel
             isOpen={isEditPanelOpen}
             onClose={() => setIsEditPanelOpen(false)}
-            appData={appData}
+            appData={displayAppData}
             theme={theme}
             onExport={handleExport}
             onImport={handleImport}
@@ -308,7 +322,6 @@ const App: React.FC = () => {
           onLoginSuccess={async (token, username) => {
             await login({ token, username });
             setIsAuthModalOpen(false);
-            // --- FIX 1: Voeg de redirect toe aan onLoginSuccess ---
             window.location.href = `/${username}`;
           }}
           onRegisterSuccess={async (token, username) => {

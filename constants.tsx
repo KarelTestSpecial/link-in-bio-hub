@@ -119,7 +119,7 @@ export const MOCK_APP_DATA: AppData = {
   profile: {
     name: "Alex Doe",
     handle: "@alexdoelife",
-    avatarUrl: "https://picsum.photos/id/237/200/200",
+    avatarUrl: "https://avatar.vercel.sh/alex-doe.svg?text=AD",
     bio: "Digital Creator ✨ | Exploring the world one city at a time ✈️ | Fuelled by coffee and creativity ☕️",
   },
   linkGroups: [
