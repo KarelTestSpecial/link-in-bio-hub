@@ -66,6 +66,13 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
+    // Redirect authenticated users from root to their profile page
+    if (!authInfo.loading && authInfo.isAuthenticated && authInfo.loggedInUsername && !profileUsername && route !== 'docs') {
+      window.location.href = `/${authInfo.loggedInUsername}`;
+    }
+  }, [authInfo, profileUsername, route]);
+
+  useEffect(() => {
     if (!profileUsername && route !== 'docs') {
       setDynamicAppData(MOCK_APP_DATA);
     } else {
