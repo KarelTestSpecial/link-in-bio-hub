@@ -84,6 +84,7 @@ export interface LinkAnalyticsData {
   linkId: string; // Backend link IDs are strings
   title: string;
   clicks: number;
+  latestClickTimestamp?: string | null;
 }
 
 export type AnalyticsResponse = LinkAnalyticsData[];

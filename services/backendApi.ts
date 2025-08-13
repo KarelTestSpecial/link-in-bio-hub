@@ -37,8 +37,10 @@ const appData = {
 };
 
 const analytics = {
-  registerClick: (username: string, linkId: string) => backendApiClient.post(`/analytics/click/${username}/${linkId}`),
-  getAnalytics: (username: string) => backendApiClient.get(`/users/${username}/analytics`),
+  registerClick: (username: string, linkId: string, title: string) => 
+    backendApiClient.post(`/analytics/click/${username}/${linkId}`, { title }),
+  getAnalytics: (username: string) => 
+    backendApiClient.get(`/users/${username}/analytics`),
 };
 
 const saveToken = (token: string) => localStorage.setItem('authToken', token);

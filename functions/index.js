@@ -33,7 +33,34 @@ const corsOptions = {
 };
 
 app.options('*', cors(corsOptions));
-app.use(cors(corsOptions));
+app.use(cors({ origin: true }));
+
+app.post("/analytics/click", (req, res) => {
+  const { username, linkId, title } = req.body;
+
+  if (!username || !linkId || !title) {
+    return res.status(400).send("Missing username, linkId, or title.");
+  }
+
+  const linkRef = admin.database().ref(`/analytics/${username}/${linkId}`);
+
+  linkRef.transaction((currentData) => {
+    if (currentData === null) {
+      return { clicks: 1, title: title };
+    } else {
+      currentData.title = title; // Ensure title is always up-to-date
+      currentData.clicks = (currentData.clicks || 0) + 1;
+      return currentData;
+    }
+  }, (error, committed, snapshot) => {
+    if (error) {
+      console.error('Transaction failed unexpectedly', error);
+      return res.status(500).send('Internal Server Error');
+    }
+  });
+
+  return res.status(204).send();
+});
 app.use(express.json());
 
 // Secrets
@@ -415,6 +442,7 @@ app.get("/users/:username/analytics", authenticateToken, async (req, res) => {
         const latestTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : null;
         return {
             linkId: linkId,
+            title: clickInfo.title || 'N/A', // Return the title
             clicks: clickInfo.count || 0,
             latestClickTimestamp: latestTimestamp ? new Date(latestTimestamp).toISOString() : null,
         };

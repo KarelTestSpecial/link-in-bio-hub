@@ -46,7 +46,7 @@ const LinkButton: React.FC<LinkButtonProps> = ({ link, animationId, ownerUsernam
 
     if (ownerUsername && link.id) {
         try {
-            await backendApi.analytics.registerClick(ownerUsername, link.id);
+            await backendApi.analytics.registerClick(ownerUsername, link.id, link.title);
         } catch (error) {
             console.error(`Failed to register click for link ID: ${link.id}`, error);
         }

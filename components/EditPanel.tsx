@@ -144,7 +144,7 @@ const EditPanel: React.FC<EditPanelProps> = ({
           />
 
           {/* Analytics Section Component */}
-          <AnalyticsSection loggedInUsername={loggedInUsername} />
+          <AnalyticsSection loggedInUsername={loggedInUsername} linkGroups={linkGroups} />
 
           {/* Import/Export (remains in EditPanel as it impacts overall appData) */}
           <Section title="Data Management">
