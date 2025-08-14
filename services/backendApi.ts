@@ -25,6 +25,8 @@ backendApiClient.interceptors.request.use((config) => {
 const auth = {
   register: (userData: any) => backendApiClient.post('/users/register', userData),
   login: (credentials: any) => backendApiClient.post('/users/login', credentials),
+  forgotPassword: (email: string) => backendApiClient.post('/users/forgot-password', { email }),
+  resetPassword: (token: string, password: string) => backendApiClient.post('/users/reset-password', { token, password }),
 };
 
 const appData = {
