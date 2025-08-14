@@ -147,8 +147,12 @@ export const useAppData = (
     } catch (error) {
       console.error("Failed to refetch app data:", error);
       if (error.response?.status === 404) {
-          toast.error("This user profile does not exist.");
+          toast.error("User profile not found. Logging you out.");
           setAppDataInternal(null);
+          // If the user is authenticated but their data is gone, log them out.
+          if (isAuthenticated) {
+            logout();
+          }
       } else {
           toast.error("Could not load page data. Please check your connection and refresh.");
           // Toon de mock data als fallback, zodat de pagina niet volledig crasht
