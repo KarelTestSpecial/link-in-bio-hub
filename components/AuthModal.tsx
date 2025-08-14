@@ -52,6 +52,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (view === 'register' && /\s/.test(username)) {
+      setError("Username cannot contain spaces.");
+      return;
+    }
+
     setLoading(true);
 
     try {

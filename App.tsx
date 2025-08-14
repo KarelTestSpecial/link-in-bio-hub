@@ -246,6 +246,14 @@ const App: React.FC = () => {
           <div className="absolute top-4 right-4 flex items-center space-x-2 z-10">
             {isAdminViewingOwnPage && (
               <>
+                <ThemeToggle theme={currentTheme} toggleTheme={toggleTheme} />
+                <button
+                  onClick={() => setIsEditPanelOpen(true)}
+                  className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200"
+                  aria-label="Customize page"
+                >
+                  <EditIcon />
+                </button>
                 <button
                   onClick={appDataActions.handleUndo}
                   disabled={!appDataActions || appDataActions.history.length === 0}
@@ -253,13 +261,6 @@ const App: React.FC = () => {
                   aria-label="Undo last action"
                 >
                   <UndoIcon />
-                </button>
-                <button
-                  onClick={() => setIsEditPanelOpen(true)}
-                  className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200"
-                  aria-label="Customize page"
-                >
-                  <EditIcon />
                 </button>
                 <button
                     onClick={() => {
@@ -274,14 +275,16 @@ const App: React.FC = () => {
               </>
             )}
             {!authInfo.isAuthenticated && (
+              <>
+                <ThemeToggle theme={currentTheme} toggleTheme={toggleTheme} />
                 <button
                     onClick={() => setAuthModalState({ isOpen: true, view: 'login' })}
                     className="px-3 py-2 text-sm font-medium rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                     Login
                 </button>
+              </>
             )}
-            <ThemeToggle theme={currentTheme} toggleTheme={toggleTheme} />
           </div>
           <main className="relative flex flex-col items-center pt-12">
             <div
