@@ -22,18 +22,25 @@ const allowedOrigins = (process.env.CORS_ORIGINS || "").split(',');
 
 const corsOptions = {
   origin: (origin, callback) => {
+    // Allow localhost for development
+    if (origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
+        return callback(null, true);
+    }
+    // Check production origins
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.error(`CORS error: Origin ${origin} not allowed.`);
       callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 };
 
-app.options('*', cors(corsOptions));
-app.use(cors({ origin: true }));
+// Apply CORS middleware to all routes
+app.use(cors(corsOptions));
 
 app.post("/analytics/click", (req, res) => {
   const { username, linkId, title } = req.body;
