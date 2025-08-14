@@ -240,10 +240,10 @@ const App: React.FC = () => {
                       logout();
                       window.location.href = '/';
                     }}
-                    className="px-3 py-2 text-sm font-medium rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                    className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200"
                     aria-label="Logout"
                 >
-                    Logout
+                    <LogoutIcon />
                 </button>
             )}
             {!authInfo.isAuthenticated && (
