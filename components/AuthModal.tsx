@@ -1,6 +1,8 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 import backendApi from '../services/backendApi';
 
+type AuthView = 'login' | 'register' | 'forgotPassword' | 'forgotPasswordSuccess';
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,17 +21,33 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isRegistering, setIsRegistering] = useState(initialView === 'register');
+  const [view, setView] = useState<AuthView>(initialView);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setIsRegistering(initialView === 'register');
+      setView(initialView);
     }
   }, [isOpen, initialView]);
 
   if (!isOpen) return null;
+
+  const handleLogin = async () => {
+    const response = await backendApi.auth.login({ email, password });
+    onLoginSuccess(response.data.token, response.data.user.username);
+    console.log('AuthModal: Calling onLoginSuccess with token and username:', response.data.token, response.data.user.username);
+  };
+
+  const handleRegister = async () => {
+    const response = await backendApi.auth.register({ email, password, username });
+    onRegisterSuccess(response.data.token, response.data.user.username);
+  };
+
+  const handleForgotPassword = async () => {
+    await backendApi.auth.forgotPassword(email);
+    setView('forgotPasswordSuccess');
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -37,26 +55,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
     setLoading(true);
 
     try {
-      if (isRegistering) {
-        const response = await backendApi.auth.register({ email, password, username });
-        onRegisterSuccess(response.data.token, response.data.user.username);
-      } else {
-        const response = await backendApi.auth.login({ email, password });
-        onLoginSuccess(response.data.token, response.data.user.username);
- console.log('AuthModal: Calling onLoginSuccess with token and username:', response.data.token, response.data.user.username);
+      if (view === 'register') {
+        await handleRegister();
+      } else if (view === 'login') {
+        await handleLogin();
+      } else if (view === 'forgotPassword') {
+        await handleForgotPassword();
       }
-      // Clear fields and close on success
-      setEmail('');
-      setUsername('');
-      setPassword('');
-      onClose();
+
+      if (view !== 'forgotPassword') {
+        // Clear fields and close on success, except for forgot password
+        setEmail('');
+        setUsername('');
+        setPassword('');
+        onClose();
+      }
     } catch (err: any) {
       console.error('Authentication error:', err.response?.data || err.message);
-      // Check if there's a specific message from the backend, otherwise show a generic error.
-      // Use optional chaining for safe access to err.response.data.message
-      setError(
-        err.response?.data?.message || 'An unexpected error occurred.'
-      );
+      setError(err.response?.data?.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
@@ -66,9 +82,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
     setEmail('');
     setUsername('');
     setPassword('');
-    setIsRegistering(false);
+    setView('login');
     setError('');
     onClose();
+  };
+
+  const getTitle = () => {
+    if (view === 'register') return 'Register';
+    if (view === 'forgotPassword') return 'Forgot Password';
+    if (view === 'forgotPasswordSuccess') return 'Check Your Email';
+    return 'Login';
   };
 
   return (
@@ -77,75 +100,91 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
       
       <div className="relative w-full max-w-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl shadow-xl transform transition-all">
         <header className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold">{isRegistering ? 'Register' : 'Login'}</h2>
+          <h2 className="text-lg font-semibold">{getTitle()}</h2>
           <button onClick={handleClose} className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Close">
             <CloseIcon />
           </button>
         </header>
 
         <form onSubmit={handleSubmit} className="p-6">
-          {isRegistering && (
-            <div className="mb-4">
-              <label htmlFor="username" className="sr-only">Username</label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Username"
-                required
-              />
+          {view === 'forgotPasswordSuccess' ? (
+            <div className="text-center">
+              <p>If an account with that email exists, we've sent a link to reset your password.</p>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="mt-4 w-full p-3 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition"
+              >
+                Close
+              </button>
             </div>
+          ) : view === 'forgotPassword' ? (
+            <>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Enter your email address and we'll send you a link to reset your password.</p>
+              <div className="mb-4">
+                <label htmlFor="email" className="sr-only">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="Email"
+                  required
+                />
+              </div>
+              {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+              <div className="mt-6">
+                <button
+                  type="submit"
+                  className="w-full p-3 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition disabled:bg-blue-300"
+                  disabled={loading || !email}
+                >
+                  {loading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+              </div>
+              <div className="mt-4 text-center">
+                <button type="button" onClick={() => setView('login')} className="text-blue-500 text-sm hover:underline">
+                  Back to Login
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {view === 'register' && (
+                <div className="mb-4">
+                  <label htmlFor="username" className="sr-only">Username</label>
+                  <input id="username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Username" required />
+                </div>
+              )}
+              <div className="mb-4">
+                <label htmlFor="email" className="sr-only">Email</label>
+                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Email" required />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="password" className="sr-only">Password</label>
+                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Password" required />
+              </div>
+              {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+              <div className="mt-6">
+                <button type="submit" className="w-full p-3 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition disabled:bg-blue-300" disabled={loading || (!email || !password || (view === 'register' && !username))}>
+                  {loading ? 'Loading...' : (view === 'register' ? 'Register' : 'Login')}
+                </button>
+              </div>
+              <div className="mt-4 text-center">
+                <button type="button" onClick={() => setView(view === 'login' ? 'register' : 'login')} className="text-blue-500 text-sm hover:underline">
+                  {view === 'login' ? 'Need an account? Register' : 'Already have an account? Login'}
+                </button>
+              </div>
+              {view === 'login' && (
+                <div className="mt-2 text-center">
+                  <button type="button" onClick={() => setView('forgotPassword')} className="text-blue-500 text-sm hover:underline">
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
+            </>
           )}
-          
-          <div className="mb-4">
-            <label htmlFor="email" className="sr-only">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Email"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="password" className="sr-only">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Password"
-              required
-            />
-          </div>
-          
-          {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
-
-          <div className="mt-6">
-            <button
-              type="submit"
-              className="w-full p-3 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition disabled:bg-blue-300"
-              disabled={loading || (!email || !password || (isRegistering && !username))}
-            >
-              {loading ? 'Loading...' : (isRegistering ? 'Register' : 'Login')}
-            </button>
-          </div>
-
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => setIsRegistering(!isRegistering)}
-              className="text-blue-500 text-sm hover:underline"
-            >
-              {isRegistering ? 'Already have an account? Login' : 'Need an account? Register'}
-            </button>
-          </div>
         </form>
       </div>
     </div>
