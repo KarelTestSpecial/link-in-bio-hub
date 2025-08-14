@@ -242,6 +242,7 @@ const App: React.FC = () => {
                     }}
                     className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200"
                     aria-label="Logout"
+                    title="Logout"
                 >
                     <LogoutIcon />
                 </button>
@@ -263,6 +264,7 @@ const App: React.FC = () => {
                   disabled={!appDataActions || appDataActions.history.length === 0}
                   className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200 disabled:opacity-50"
                   aria-label="Undo last action"
+                  title="Undo"
                 >
                   <UndoIcon />
                 </button>
@@ -270,10 +272,11 @@ const App: React.FC = () => {
                   onClick={() => setIsEditPanelOpen(true)}
                   className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200"
                   aria-label="Customize page"
+                  title="Edit"
                 >
                   <EditIcon />
                 </button>
-                <ThemeToggle theme={currentTheme} toggleTheme={toggleTheme} />
+                <ThemeToggle theme={currentTheme} toggleTheme={toggleTheme} title="Dark/Light" />
               </>
             )}
             {!authInfo.isAuthenticated && (
