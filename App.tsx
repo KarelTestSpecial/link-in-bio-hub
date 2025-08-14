@@ -17,6 +17,7 @@ import { useAppData } from './hooks/useAppData';
 import backendApi from './services/backendApi';
 import toast, { Toaster } from 'react-hot-toast';
 import DocumentationPage from './components/DocumentationPage';
+import ResetPasswordPage from './components/ResetPasswordPage';
 
 const EditIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -188,6 +189,10 @@ const App: React.FC = () => {
     reader.readAsText(file);
     event.target.value = '';
   };
+
+  if (route === 'reset-password') {
+    return <ResetPasswordPage />;
+  }
 
   if (route === 'docs') {
     return <DocumentationPage />;

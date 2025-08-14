@@ -9,6 +9,8 @@ const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { onRequest } = require("firebase-functions/v2/https");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 // Initialiseer Firebase Admin SDK
 // Binnen een Firebase-omgeving worden de instellingen automatisch gedetecteerd.
@@ -73,6 +75,27 @@ app.use(express.json());
 // Secrets
 const JWT_SECRET = process.env.JWT_SECRET;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const EMAIL_HOST = process.env.EMAIL_HOST;
+const EMAIL_PORT = process.env.EMAIL_PORT;
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+const EMAIL_FROM = process.env.EMAIL_FROM;
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
+let transporter;
+if (EMAIL_HOST && EMAIL_USER && EMAIL_PASS) {
+  transporter = nodemailer.createTransport({
+    host: EMAIL_HOST,
+    port: EMAIL_PORT,
+    secure: EMAIL_PORT === '465', // true for 465, false for other ports
+    auth: {
+      user: EMAIL_USER,
+      pass: EMAIL_PASS,
+    },
+  });
+} else {
+  console.warn("Email credentials (EMAIL_HOST, EMAIL_USER, EMAIL_PASS) are not set. Password reset emails will not be sent.");
+}
 
 let genAI;
 if (GEMINI_API_KEY) {
@@ -284,6 +307,104 @@ app.post("/users/login", async (req, res) => {
   } catch (error) {
     console.error("Error in /users/login:", error);
     res.status(500).send({ message: "Internal Server Error. Could not log in." });
+  }
+});
+
+app.post("/users/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).send({ message: "Email is required." });
+    }
+
+    const usersRef = db.ref('users');
+    const snapshot = await usersRef.orderByChild('email').equalTo(email).once('value');
+
+    if (!snapshot.exists()) {
+      console.log(`Password reset requested for non-existent email: ${email}`);
+      return res.status(200).send({ message: "If an account with this email exists, a password reset link has been sent." });
+    }
+
+    const users = snapshot.val();
+    const username = Object.keys(users)[0];
+    const userRef = usersRef.child(username);
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const passwordResetToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    const passwordResetExpires = Date.now() + 3600000; // 1 hour
+
+    await userRef.update({
+      passwordResetToken,
+      passwordResetExpires,
+    });
+
+    if (!transporter) {
+        console.error("Nodemailer transporter is not configured. Cannot send password reset email.");
+        return res.status(200).send({ message: "Password reset initiated, but email sending is disabled." });
+    }
+
+    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    const mailOptions = {
+      from: EMAIL_FROM,
+      to: email,
+      subject: "Your Password Reset Link",
+      html: `<p>You requested a password reset. Click the link below to reset your password. This link is valid for one hour.</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending password reset email:", error);
+      } else {
+        console.log("Password reset email sent: %s", info.messageId);
+        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+      }
+    });
+
+    res.status(200).send({ message: "If an account with this email exists, a password reset link has been sent." });
+  } catch (error) {
+    console.error("Error in /users/forgot-password:", error);
+    res.status(500).send({ message: "An internal error occurred." });
+  }
+});
+
+app.post("/users/reset-password", async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).send({ message: "Token and new password are required." });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const usersRef = db.ref('users');
+    const snapshot = await usersRef.orderByChild('passwordResetToken').equalTo(hashedToken).once('value');
+
+    if (!snapshot.exists()) {
+      return res.status(400).send({ message: "Password reset token is invalid." });
+    }
+
+    const users = snapshot.val();
+    const username = Object.keys(users)[0];
+    const user = users[username];
+
+    if (Date.now() > user.passwordResetExpires) {
+      return res.status(400).send({ message: "Password reset token has expired." });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const userRef = usersRef.child(username);
+    await userRef.update({
+      password: hashedPassword,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+    });
+
+    res.status(200).send({ message: "Password has been reset successfully." });
+  } catch (error) {
+    console.error("Error in /users/reset-password:", error);
+    res.status(500).send({ message: "An internal error occurred." });
   }
 });
 
@@ -595,7 +716,16 @@ app.post("/ai/ask-question-stream", authenticateToken, async (req, res) => {
 exports.api = onRequest(
     {
         region: 'europe-west3',
-        secrets: ["GEMINI_API_KEY", "JWT_SECRET"],
+        secrets: [
+            "GEMINI_API_KEY",
+            "JWT_SECRET",
+            "EMAIL_HOST",
+            "EMAIL_PORT",
+            "EMAIL_USER",
+            "EMAIL_PASS",
+            "EMAIL_FROM",
+            "FRONTEND_URL"
+        ],
     },
     app
 );
