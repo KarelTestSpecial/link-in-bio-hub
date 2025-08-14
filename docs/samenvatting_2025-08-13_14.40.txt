@@ -1,0 +1,23 @@
+Onderwerp: Verbetering van de Analytics Functionaliteit
+
+Datum: 2025-08-13
+
+Probleem:
+De analytics-sectie toonde onleesbare unieke ID's (UUIDs) voor de link-knoppen in plaats van de daadwerkelijke titels (bv. "Mijn Website"). Dit maakte de klik-statistieken moeilijk te interpreteren.
+
+Uitgevoerde Werkzaamheden:
+
+Fase 1: Opslaan van de Linktitel
+1.  Frontend Analyse: Vastgesteld dat bij een klik op een `LinkButton` alleen de `linkId` werd doorgestuurd naar de backend.
+2.  Aanpassing Frontend (`LinkButton.tsx`, `services/backendApi.ts`): De code is aangepast zodat nu ook de `link.title` wordt meegestuurd naar de backend API.
+3.  Aanpassing Backend (`functions/index.js`): De API-endpoint die de klik registreert, is aangepast om de meegestuurde titel te ontvangen en op te slaan in de Realtime Database, samen met het aantal klikken.
+
+Fase 2: Oplossen van 'N/A' voor Oude Data
+1.  Probleem na Fase 1: Analytics-data die was opgeslagen *voor* de aanpassing had geen titelveld, waardoor de frontend 'N/A' toonde.
+2.  Analyse: De `AnalyticsSection` component had geen toegang tot de actuele link-configuratie om de ontbrekende titels op te zoeken.
+3.  Oplossing:
+    a.  De `linkGroups` (de lijst van alle links met hun titels) wordt nu als "prop" doorgegeven van de `EditPanel` component naar de `AnalyticsSection` component.
+    b.  De `AnalyticsSection` component is intelligenter gemaakt. Het gebruikt de `linkGroups` om een "lookup map" te creëren. Als een analytics-item geen titel heeft, zoekt de component de juiste titel op in deze map aan de hand van de `linkId`.
+
+Eindresultaat:
+De analytics-sectie toont nu correct de leesbare titels voor alle geregistreerde klikken, zowel voor data van vóór de aanpassing als voor alle nieuwe klikken. De functionaliteit is robuuster en gebruiksvriendelijker geworden.

@@ -1,0 +1,15 @@
+API keys setup / Link in bio Hub project
+
+
+
+WAAR:
+google cloud console
+https://console.cloud.google.com/security/secret-manager?inv=1&invt=Ab5XuA&project=link-in-bio-fbase-project
+
+GEMINI_API_KEY
+
+present: ai google studio (free) api-key : Jul 19, 2025
+production : ai vertex ai api key >>> vraag gemini hoe dat moet !!!
+
+
+
