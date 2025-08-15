@@ -259,6 +259,14 @@ const App: React.FC = () => {
           <div className="absolute top-4 right-4 flex items-center space-x-2 z-10">
             {isAdminViewingOwnPage && (
               <>
+                <ThemeToggle theme={currentTheme} toggleTheme={toggleTheme} />
+                <button
+                  onClick={() => setIsEditPanelOpen(true)}
+                  className="p-2 rounded-full text-[var(--text-secondary)] bg-[var(--surface-color)] hover:bg-[var(--surface-color-hover)] transition-colors duration-200"
+                  aria-label="Customize page"
+                >
+                  <EditIcon />
+                </button>
                 <button
                   onClick={appDataActions.handleUndo}
                   disabled={!appDataActions || appDataActions.history.length === 0}

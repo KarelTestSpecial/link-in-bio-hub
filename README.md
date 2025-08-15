@@ -37,7 +37,7 @@ Link-in-bio-Hub is a platform designed to consolidate your online presence, allo
 
 This project is configured for the following Firebase setup:
 
-*   **Firebase Project ID:** `link-in-bio-fbase-project`
+*   **Firebase Project ID:** `linkinbiohub`
 *   **Firebase Functions Region:** `europe-west3`
 *   **Firebase Realtime Database Region:** `europe-west1`
 *   **Authentication:** Custom JWT-based authentication.
