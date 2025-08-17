@@ -37,15 +37,54 @@ Link-in-bio-Hub is a platform designed to consolidate your online presence, allo
 
 This project is configured for the following Firebase setup:
 
-*   **Firebase Project ID:** `link-in-bio-fbase-project`
+*   **Firebase Project ID:** `linkinbiohub`
 *   **Firebase Functions Region:** `europe-west3`
 *   **Firebase Realtime Database Region:** `europe-west1`
 *   **Authentication:** Custom JWT-based authentication.
 
 ## Deployment
-To deploy your application to Firebase Hosting and Cloud Functions:
--   Ensure you are logged in to Firebase CLI (`firebase login`).
--   Make sure your project is linked correctly (`firebase use --add`).
--   Run the deploy command:
-    `firebase deploy`
-This command will build your frontend (if configured in `firebase.json`), deploy your Cloud Functions, and deploy your frontend static files to Firebase Hosting.
+
+To deploy the application to Firebase, follow these steps. This process will publish the frontend to Firebase Hosting and the backend to Firebase Cloud Functions.
+
+### 1. Configure Production Environment
+
+Before the first deployment, you need to ensure the frontend knows how to communicate with the backend API.
+
+Create a file named `.env.production` in the root of the project and add the following line. This file tells the Vite build process what the base URL of your API is.
+
+```
+VITE_API_BASE_URL="https://europe-west3-linkinbiohub.cloudfunctions.net/api"
+```
+
+**Note:** This file should only contain non-sensitive information.
+
+### 2. Build the Frontend
+
+Compile and optimize the frontend application for production by running the following command in your terminal:
+
+```bash
+npm run build
+```
+
+This command creates a `dist/` directory containing the static HTML, CSS, and JavaScript files.
+
+### 3. Deploy to Firebase
+
+Finally, deploy all parts of the project (Hosting, Functions, Rules) to Firebase.
+
+First, ensure you are logged into the Firebase CLI:
+```bash
+firebase login
+```
+
+Then, run the deployment command:
+```bash
+firebase deploy
+```
+
+This command will:
+- Upload the contents of the `dist/` directory to **Firebase Hosting**.
+- Deploy the backend code from the `functions/` directory to **Cloud Functions**.
+- Apply any database and Firestore rules defined in your project.
+
+Once completed, your application will be live at your Firebase Hosting URL (e.g., `https://linkinbiohub.web.app`).
